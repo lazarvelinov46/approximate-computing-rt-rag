@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+results/*
+!results/.gitkeep
+figures/*
+!figures/.gitkeep
+data/
+hf_cache/
+.cache/
+*.faiss
+*.index
+*.log
+.env
+.DS_Store

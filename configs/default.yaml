@@ -1,0 +1,22 @@
+# Baseline configuration. Precise baseline = first value of every knob range in knobs.yaml.
+seed: 42
+
+models:
+  generator:       Qwen/Qwen2.5-3B-Instruct     # Kaggle default; 7B reserved for 4090
+  generator_small: Qwen/Qwen2.5-1.5B-Instruct
+  embedder:        BAAI/bge-small-en-v1.5
+
+dataset:
+  name: hotpot_qa            # placeholder — see open decision #1
+  config: distractor
+  split: validation
+  subset_size: 500           # keep small for free-tier iteration
+
+retrieval:
+  top_k: 5
+  embed_dim: 384
+
+paths:
+  results_dir: results/
+  figures_dir: figures/
+  index_dir:   results/indexes/

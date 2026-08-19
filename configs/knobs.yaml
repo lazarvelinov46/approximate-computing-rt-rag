@@ -1,0 +1,20 @@
+# Each knob's FIRST value is the PRECISE baseline; later values are increasingly approximate.
+# During a single-knob sweep, all other knobs are held at their baseline (first) value.
+
+knob_search_effort:              # AC technique: approximate search
+  index_type: [flat, hnsw, ivfpq]   # flat = exact baseline
+  hnsw_ef:    [512, 128, 64, 32]
+  ivf_nprobe: [256, 64, 16, 4, 1]
+
+knob_embedding_precision:        # AC technique: precision scaling
+  mode:  [fp32, pq]                 # fp32 = precise baseline
+  pq_m:  [96, 48, 24]               # product-quantization subvectors
+
+knob_kv_precision:               # AC technique: precision scaling
+  bits: [16, 8, 4, 2]               # 16 = precise baseline
+
+knob_kv_eviction:                # AC technique: computation skipping
+  keep_ratio: [1.0, 0.75, 0.5, 0.25]   # 1.0 = full cache baseline
+
+knob_top_k:                      # AC technique: data sampling (optional 5th knob)
+  k: [5, 3, 1]                      # 5 = baseline

@@ -1,0 +1,26 @@
+# Core (mostly preinstalled on Kaggle)
+torch
+transformers>=4.44
+accelerate
+datasets
+numpy
+pandas
+matplotlib
+pyyaml
+tqdm
+
+# Retrieval
+sentence-transformers
+faiss-cpu
+
+# Approximation backends
+bitsandbytes
+optimum-quanto
+
+# Efficiency measurement (dedicated GPU phase)
+pynvml
+
+# Optional
+# auto-gptq
+# autoawq
+# wandb
