@@ -16,6 +16,11 @@ retrieval:
   top_k: 5
   embed_dim: 384
 
+generation:
+  batch_size: 32          # T4 ceiling ≈32 @1k ctx; 16 leaves margin for long prompts
+  max_new_tokens: 32
+  padding_side: left
+
 paths:
   results_dir: results/
   figures_dir: figures/
