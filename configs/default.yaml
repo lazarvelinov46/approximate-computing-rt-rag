@@ -11,6 +11,7 @@ dataset:
   config: distractor
   split: validation
   subset_size: 500           # keep small for free-tier iteration
+  min_paragraphs: 10        # distractor setting is defined as 10 candidates
 
 retrieval:
   top_k: 5

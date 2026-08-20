@@ -91,10 +91,21 @@ def load_hotpotqa(
     split: str = "validation",
     config: str = "distractor",
     dataset_name: str = DATASET_NAME,
+    min_paragraphs: int = 10,
     cache_dir: Optional[str] = None,
     verbose: bool = True,
 ) -> List[Example]:
-    """Return `subset_size` Examples, deterministically sampled."""
+    """Return `subset_size` Examples, deterministically sampled.
+
+    Two independent exclusions, counted separately because they need
+    separate justification in the paper:
+      * malformed  — supporting-fact titles resolve to no context paragraph,
+                     so recall@k has no ground truth.
+      * short      — fewer than `min_paragraphs` candidates. The distractor
+                     setting is defined as 10 candidates; a 2-paragraph row
+                     makes recall@k trivially 1.0 and puts a constant floor
+                     under every retrieval curve.
+    """
     from datasets import load_dataset
 
     ds = load_dataset(dataset_name, config, split=split, cache_dir=cache_dir)
@@ -103,11 +114,14 @@ def load_hotpotqa(
     Random(seed).shuffle(order)
 
     out: List[Example] = []
-    skipped = 0
+    n_malformed = n_short = 0
     for i in order:
         ex = _to_example(ds[i])
         if ex is None:
-            skipped += 1
+            n_malformed += 1
+            continue
+        if ex.n_paragraphs < min_paragraphs:
+            n_short += 1
             continue
         out.append(ex)
         if subset_size is not None and len(out) >= subset_size:
@@ -117,7 +131,8 @@ def load_hotpotqa(
         raise RuntimeError(f"only {len(out)}/{subset_size} usable examples in {split}")
     if verbose:
         print(f"loaded {len(out)} examples from {dataset_name}/{config}:{split} "
-              f"(seed {seed}, {skipped} malformed rows skipped)")
+              f"(seed {seed}, min_paragraphs={min_paragraphs}; "
+              f"excluded {n_malformed} malformed, {n_short} short)")
     return out
 
 
@@ -129,6 +144,7 @@ def load_from_config(cfg: Dict[str, Any], **overrides) -> List[Example]:
         config=d.get("config", "distractor"),
         split=d.get("split", "validation"),
         subset_size=d.get("subset_size", 500),
+        min_paragraphs=d.get("min_paragraphs", 10),
         seed=cfg.get("seed", 42),
     )
     kwargs.update(overrides)
