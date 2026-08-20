@@ -7,7 +7,7 @@ results/*
 !results/.gitkeep
 figures/*
 !figures/.gitkeep
-data/
+/data/
 hf_cache/
 .cache/
 *.faiss
