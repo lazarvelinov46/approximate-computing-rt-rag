@@ -18,7 +18,10 @@ retrieval:
   embed_dim: 384
 
 generation:
-  batch_size: 32          # T4 ceiling ≈32 @1k ctx; 16 leaves margin for long prompts
+  batch_size: 16          # measured: OOM at 48, OK at 40 (padded 1539 tok,
+                          # peak 12.72 GiB). Set to ~2x margin below ceiling.
+                          # FROZEN — batched greedy decode is not bitwise
+                          # reproducible across batch sizes.
   max_new_tokens: 32
   padding_side: left
 
