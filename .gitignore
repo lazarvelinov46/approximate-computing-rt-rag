@@ -5,6 +5,8 @@ venv/
 .ipynb_checkpoints/
 results/*
 !results/.gitkeep
+!results/baseline_results.csv
+!results/baseline_summary.json
 figures/*
 !figures/.gitkeep
 /data/
