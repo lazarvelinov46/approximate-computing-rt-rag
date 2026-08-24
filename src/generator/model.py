@@ -20,7 +20,6 @@ SYSTEM = (
     "You answer questions using only the numbered context passages.\n"
     "Output only the answer itself, copied as a minimal span from the passages. "
     "Never explain, never restate the question, never write a full sentence.\n"
-    "If the question has a yes/no answer, output exactly yes or no.\n"
     "\n"
     "Example question: Which city is home to the Eiffel Tower?\n"
     "Example answer: Paris"
