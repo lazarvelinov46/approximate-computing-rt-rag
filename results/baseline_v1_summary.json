@@ -1,0 +1,42 @@
+{
+  "setting": "baseline",
+  "seed": 42,
+  "dataset": {
+    "name": "hotpotqa/hotpot_qa",
+    "config": "distractor",
+    "split": "validation",
+    "subset_size": 500,
+    "min_paragraphs": 10
+  },
+  "models": {
+    "generator": "Qwen/Qwen2.5-3B-Instruct",
+    "generator_small": "Qwen/Qwen2.5-1.5B-Instruct",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "retrieval": {
+    "top_k": 5,
+    "embed_dim": 384
+  },
+  "generation": {
+    "batch_size": 16,
+    "max_new_tokens": 32,
+    "padding_side": "left"
+  },
+  "metrics": {
+    "n": 500,
+    "em": 0.39,
+    "f1": 0.4861,
+    "recall@5": 0.916,
+    "complete_frac": 0.836,
+    "em_complete": 0.4378,
+    "n_complete": 418,
+    "em_incomplete": 0.1463,
+    "n_incomplete": 82,
+    "em_bridge": 0.3457,
+    "n_bridge": 405,
+    "em_comparison": 0.5789,
+    "n_comparison": 95,
+    "em_yesno": 0.6389,
+    "n_yesno": 36
+  }
+}
