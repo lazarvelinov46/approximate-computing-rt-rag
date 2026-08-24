@@ -12,7 +12,7 @@ Experimental-setup invariants — must not change between sweeps:
 """
 from __future__ import annotations
 
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Optional
 
 import torch
 
@@ -50,15 +50,16 @@ def build_context(paragraphs: Sequence[str]) -> str:
     return "\n\n".join(f"[{i + 1}] {p}" for i, p in enumerate(paragraphs))
 
 
-def build_prompt(tok, question: str, paragraphs: Sequence[str]) -> str:
+def build_prompt(tok, question: str, paragraphs: Sequence[str],
+                 system: Optional[str] = None) -> str:
     """Chat-templated prompt string, ready to tokenize.
 
-    Returns text rather than ids so prompt length can be audited without
-    loading model weights, and so a prompt is inspectable as a string.
+    `system` overrides the frozen SYSTEM constant. It exists ONLY for prompt
+    A/B testing on a dev sample — every measurement run uses the default.
     """
     user = f"Context:\n{build_context(paragraphs)}\n\nQuestion: {question}"
     return tok.apply_chat_template(
-        [{"role": "system", "content": SYSTEM},
+        [{"role": "system", "content": system or SYSTEM},
          {"role": "user", "content": user}],
         tokenize=False,
         add_generation_prompt=True,
