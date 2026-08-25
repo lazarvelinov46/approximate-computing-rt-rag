@@ -23,6 +23,7 @@ generation:
                           # FROZEN — batched greedy decode is not bitwise
                           # reproducible across batch sizes.
   max_new_tokens: 32
+  max_new_tokens_explain: 256     # regime "explain": dev p99 = 198, 0% truncated
   padding_side: left
 
 paths:

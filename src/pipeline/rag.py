@@ -3,6 +3,12 @@ Home of KNOB 5 (top-k). Phase 1.
 
 Precise baseline: exact flat index, fp32 embeddings, fp16 KV cache, top_k=5.
 
+Two generation REGIMES, held fixed within any sweep and swept independently:
+  * "short"   — minimal answer span, ~3-5 decode tokens
+  * "explain" — reasoning then a marked answer line, ~90 decode tokens.
+                Gives KNOB 4 (KV eviction) decode-time context to act on and
+                makes decode throughput measurable in Phase 3.
+
 Experimental-setup invariants:
   * examples are processed in loader order — never sorted, never shuffled
   * batches are fixed chunks of that order, so batch composition is identical
@@ -20,9 +26,12 @@ import time
 from typing import Any, Dict, List, Optional, Sequence
 
 FIELDS = [
-    "setting", "qid", "level", "qtype", "question", "gold_answer",
-    "gold_ids", "retrieved_ids", "prediction", "prompt_tokens", "n_paragraphs",
+    "setting", "mode", "qid", "level", "qtype", "question", "gold_answer",
+    "gold_ids", "retrieved_ids", "prediction", "raw_generation", "parsed_ok",
+    "prompt_tokens", "decode_tokens", "n_paragraphs",
 ]
+
+MODES = ("short", "explain")
 
 
 def _chunks(seq: Sequence[Any], n: int) -> List[Sequence[Any]]:
@@ -38,8 +47,19 @@ def _completed_qids(path: Optional[str], setting: str) -> set:
 
 
 def _writer(path: str):
-    """Append-mode writer; emits the header only for a fresh file."""
+    """Append-mode writer; header only for a fresh file.
+
+    A pre-existing file with a different header means the schema changed since
+    it was written. Appending would misalign every column, so fail loudly.
+    """
     fresh = not os.path.exists(path) or os.path.getsize(path) == 0
+    if not fresh:
+        with open(path, newline="") as fh:
+            existing = next(csv.reader(fh), [])
+        if existing != FIELDS:
+            raise RuntimeError(
+                f"{path} has an incompatible header (schema changed). "
+                f"Write to a new file rather than appending.")
     fh = open(path, "a", newline="")
     w = csv.DictWriter(fh, fieldnames=FIELDS)
     if fresh:
@@ -48,7 +68,7 @@ def _writer(path: str):
 
 
 def retrieve_all(embedder, examples, top_k: int, progress: bool = False):
-    """-> (retrieved_ids per question, in descending relevance order).
+    """-> retrieved_ids per question, in descending relevance order.
 
     Regime 1: one exact index per question over its own ~10 paragraphs.
     """
@@ -66,6 +86,18 @@ def retrieve_all(embedder, examples, top_k: int, progress: bool = False):
     return out
 
 
+def _mode_settings(mode: str, cfg: Dict[str, Any], max_new_tokens: Optional[int]):
+    """-> (system prompt, max_new_tokens) for the requested regime."""
+    from src.generator import model as G
+
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {MODES}, got {mode!r}")
+    if mode == "short":
+        return G.SYSTEM, max_new_tokens or cfg["generation"]["max_new_tokens"]
+    return (G.SYSTEM_EXPLAIN,
+            max_new_tokens or cfg["generation"].get("max_new_tokens_explain", 256))
+
+
 def run_pipeline(
     examples,
     cfg: Dict[str, Any],
@@ -73,6 +105,7 @@ def run_pipeline(
     embedder=None,
     generator=None,
     gen_tok=None,
+    mode: str = "short",
     top_k: Optional[int] = None,
     batch_size: Optional[int] = None,
     max_new_tokens: Optional[int] = None,
@@ -87,14 +120,14 @@ def run_pipeline(
     source of truth for a completed run.
 
     `setting` tags every row so Phase 2 can append many knob settings to one
-    file and still tell them apart.
+    file and still tell them apart. `mode` selects the generation regime.
     """
     from src.retriever import embed as E
     from src.generator import model as G
 
     top_k = top_k if top_k is not None else cfg["retrieval"]["top_k"]
     batch_size = batch_size or cfg["generation"]["batch_size"]
-    max_new_tokens = max_new_tokens or cfg["generation"]["max_new_tokens"]
+    system, max_new_tokens = _mode_settings(mode, cfg, max_new_tokens)
 
     if embedder is None:
         embedder = E.load_embedder(cfg["models"]["embedder"])
@@ -104,13 +137,15 @@ def run_pipeline(
     t0 = time.time()
     retrieved = retrieve_all(embedder, examples, top_k, progress=progress)
     prompts = [
-        G.build_prompt(gen_tok, e.question, [e.paragraphs[i] for i in r])
+        G.build_prompt(gen_tok, e.question, [e.paragraphs[i] for i in r],
+                       system=system)
         for e, r in zip(examples, retrieved)
     ]
     plens = [len(gen_tok.encode(p)) for p in prompts]
     if progress:
         print(f"retrieved + prompted {len(examples)} questions "
-              f"in {time.time() - t0:.1f}s")
+              f"in {time.time() - t0:.1f}s  [mode={mode}, "
+              f"max_new_tokens={max_new_tokens}]")
 
     # Chunk the FULL order first, then skip complete batches. Filtering
     # examples before chunking would re-partition the survivors and change
@@ -129,12 +164,22 @@ def run_pipeline(
         for bi, idxs in enumerate(batches):
             if done and all(examples[i].qid in done for i in idxs):
                 continue
-            preds = G.generate_batch(generator, gen_tok,
-                                     [prompts[i] for i in idxs], max_new_tokens)
-            for i, pred in zip(idxs, preds):
+            raw = G.generate_batch(generator, gen_tok,
+                                   [prompts[i] for i in idxs], max_new_tokens)
+
+            # In explain mode the prediction is an EXTRACTION from a longer
+            # text. Keep the raw generation so a parse failure stays
+            # distinguishable from a wrong answer after the run.
+            if mode == "explain":
+                parsed = [G.parse_answer(t) for t in raw]
+            else:
+                parsed = [(t, True) for t in raw]
+
+            for i, text, (pred, ok) in zip(idxs, raw, parsed):
                 e = examples[i]
                 row = {
                     "setting": setting,
+                    "mode": mode,
                     "qid": e.qid,
                     "level": e.level,
                     "qtype": e.qtype,
@@ -143,7 +188,10 @@ def run_pipeline(
                     "gold_ids": " ".join(map(str, e.gold_ids)),
                     "retrieved_ids": " ".join(map(str, retrieved[i])),
                     "prediction": pred,
+                    "raw_generation": text if mode == "explain" else "",
+                    "parsed_ok": int(ok),
                     "prompt_tokens": plens[i],
+                    "decode_tokens": len(gen_tok.encode(text)),
                     "n_paragraphs": e.n_paragraphs,
                 }
                 rows.append(row)
@@ -163,9 +211,14 @@ def run_pipeline(
     return rows
 
 
-def load_results(path: str, setting: Optional[str] = None):
-    """Read a results CSV back as a DataFrame."""
+def load_results(path: str, setting: Optional[str] = None,
+                 mode: Optional[str] = None):
+    """Read a results CSV back as a DataFrame, optionally filtered."""
     import pandas as pd
 
     df = pd.read_csv(path)
-    return df[df["setting"] == setting] if setting else df
+    if setting is not None:
+        df = df[df["setting"] == setting]
+    if mode is not None and "mode" in df.columns:
+        df = df[df["mode"] == mode]
+    return df

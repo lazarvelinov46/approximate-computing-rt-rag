@@ -31,8 +31,8 @@ Phase 0 (1024-token stub, all-ones mask, full 32-step decode):
 - batch 32 peak 12.97–13.09 GiB; OOM at 48
 
 Phase 1 (500 real HotpotQA top-k=5 prompts, batched left-padded):
-- prompt tokens: mean 759, p50 742, p90 1000, p99 1189, max 1539
-  (measured AFTER the exemplar system-prompt fix, which added ~31 tokens)
+- prompt tokens: mean 744, p50 728, p90 985, p99 1174, max 1524
+  (measured under the final V1 system prompt)
 - batches pad to the batch maximum, so the binding constraint is max, not p99
 - batch 40 peak 12.72 GiB OK; batch 48 OOM
 - per-sequence cost is LOWER than the stub despite longer prompts: real
