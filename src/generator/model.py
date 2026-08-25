@@ -27,22 +27,19 @@ SYSTEM = (
 )
 
 # --- Regime B: explain-then-answer ---------------------------------------
-# Long decode so KV-cache eviction (knob 4) has accumulated context to act on.
-# The final line is machine-parsed, so EM/F1 stay identical to regime A.
+# Long decode (~90 tokens vs ~3) so KV eviction has decode-time context to act
+# on and decode throughput is measurable in Phase 3. Selected on a 200-question
+# dev sample disjoint from the frozen subset: EM 0.425 vs 0.435 for a shorter
+# variant (inside 1 SE), 100% parse, 0% truncation, median decode 90 vs 53.
 SYSTEM_EXPLAIN = (
     "You answer questions using only the numbered context passages.\n"
-    "First explain your reasoning in two or three sentences, naming the "
-    "passages you used by their number.\n"
+    "Work through EVERY passage in order. For each one, write a sentence "
+    "stating what it says and whether it helps answer the question.\n"
+    "Then write one or two sentences connecting the useful passages into a "
+    "chain of reasoning.\n"
     "Then write a final line in exactly this form: Answer: <answer>\n"
     "The answer itself must be a minimal span copied from the passages — "
-    "never a full sentence.\n"
-    "\n"
-    "Example question: Which city is home to the Eiffel Tower?\n"
-    "Example response:\n"
-    "Passage [2] describes the Eiffel Tower as a wrought-iron tower on the "
-    "Champ de Mars. Passage [2] places the Champ de Mars in Paris, so the "
-    "tower stands in Paris.\n"
-    "Answer: Paris"
+    "never a full sentence."
 )
 
 _ANSWER_RE = re.compile(r"answer\s*:\s*(.+)", re.IGNORECASE)
