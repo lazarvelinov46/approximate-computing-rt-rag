@@ -7,6 +7,8 @@ results/*
 !results/.gitkeep
 !results/baseline_results.csv
 !results/baseline_summary.json
+!results/baseline_explain_results.csv
+!results/baseline_explain_summary.json
 !results/baseline_v1_results.csv
 !results/baseline_v1_summary.json
 figures/*
