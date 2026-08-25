@@ -60,14 +60,23 @@ ac-rag-stack/
 ```
 
 ## Roadmap
-- **Phase 0** — scaffold + smoke test (env, model load, tiny retrieval). <- we are here
-- **Phase 1** — precise baseline end-to-end (Flat index, FP16 cache, full context).
-- **Phase 2** — single-knob sweeps for *quality* metrics (hardware-independent; free Kaggle).
+- **Phase 0** — scaffold + smoke test (env, model load, tiny retrieval). *Complete.*
+- **Phase 1** — precise baseline end-to-end (Flat index, FP16 cache, full context). *Complete:* EM 0.390 / F1 0.486 / recall@5 0.916 (short regime); EM 0.422 / F1 0.539 (explain regime), 500 HotpotQA distractor questions.
+- **Phase 2** — single-knob sweeps for *quality* metrics (hardware-independent; free Kaggle). <- we are here
 - **Phase 3** — dedicated-GPU timing + energy runs (RTX 4090).
 - **Phase 4** — joint sweeps, Pareto frontier, plots, write-up.
 
-## Open decisions (confirm before Phase 1)
-1. Benchmark: HotpotQA (bundled gold+distractor contexts — convenient) vs NQ-open (needs a Wikipedia corpus).
-2. Default model size on Kaggle: Qwen2.5-3B (recommended) vs 1.5B (safest) — 7B reserved for the 4090.
-3. Tracking: CSV/JSON + matplotlib (recommended, zero-setup) vs add Weights & Biases.
-4. Workflow: GitHub repo cloned into a Kaggle notebook (recommended) vs Kaggle-only.
+## Open decisions
+Settled: benchmark (HotpotQA distractor), Kaggle model size (Qwen2.5-3B),
+tracking (CSV/JSON + matplotlib), workflow (GitHub cloned into Kaggle).
+
+Open, for Phase 2:
+1. Large-index corpus for the retrieval knobs — pool HotpotQA paragraphs
+   (~5k passages) vs NQ-open with a Wikipedia corpus.
+2. Study scoping — characterisation of approximate computing in short-context
+   RAG, vs an attempt to reproduce long-context KV findings. Prompt tokens are
+   88–99% of the KV cache in this stack and prefill activations exceed KV by
+   ~7:1, so the long-context regime is not reachable here without changing
+   model or corpus.
+3. Qwen2.5-7B (GQA-4) as a within-family contrast for the KV knobs on the 4090.
+4. Answer scoring beyond EM/F1 (LLM judge) — optional.
