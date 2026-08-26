@@ -1,0 +1,50 @@
+{
+  "setting": "baseline_explain",
+  "mode": "explain",
+  "seed": 42,
+  "dataset": {
+    "name": "hotpotqa/hotpot_qa",
+    "config": "distractor",
+    "split": "validation",
+    "subset_size": 1000,
+    "min_paragraphs": 10
+  },
+  "models": {
+    "generator": "Qwen/Qwen2.5-3B-Instruct",
+    "generator_small": "Qwen/Qwen2.5-1.5B-Instruct",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "retrieval": {
+    "top_k": 5,
+    "embed_dim": 384
+  },
+  "generation": {
+    "batch_size": 16,
+    "max_new_tokens": 32,
+    "max_new_tokens_explain": 256,
+    "padding_side": "left"
+  },
+  "metrics": {
+    "n": 1000,
+    "em": 0.424,
+    "f1": 0.5594,
+    "recall@5": 0.916,
+    "complete_frac": 0.838,
+    "em_complete": 0.4845,
+    "n_complete": 838,
+    "em_incomplete": 0.1111,
+    "n_incomplete": 162,
+    "em_bridge": 0.4121,
+    "n_bridge": 808,
+    "em_comparison": 0.474,
+    "n_comparison": 192,
+    "em_yesno": 0.6462,
+    "n_yesno": 65,
+    "abstain_rate": 0.008,
+    "n_abstain": 8,
+    "trunc_rate": 0.006,
+    "parse_fail_rate": 0.006,
+    "decode_p50": 92.5,
+    "decode_p99": 224.0999999999999
+  }
+}
