@@ -213,10 +213,18 @@ def run_pipeline(
 
 def load_results(path: str, setting: Optional[str] = None,
                  mode: Optional[str] = None):
-    """Read a results CSV back as a DataFrame, optionally filtered."""
+    """Read a results CSV back as a DataFrame, optionally filtered.
+
+    keep_default_na=False: a prediction of "None" or "NA" is a STRING the
+    model produced, not a missing value. Letting pandas convert it to NaN
+    hides a real model output behind a type change.
+    """
     import pandas as pd
 
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, keep_default_na=False, dtype=str)
+    for col in ("prompt_tokens", "decode_tokens", "parsed_ok", "n_paragraphs"):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
     if setting is not None:
         df = df[df["setting"] == setting]
     if mode is not None and "mode" in df.columns:

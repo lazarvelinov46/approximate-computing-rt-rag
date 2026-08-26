@@ -18,6 +18,8 @@ from typing import Any, Dict, List, Sequence
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 _PUNCT = str.maketrans("", "", string.punctuation)
 _WS = re.compile(r"\s+")
+_ABSTAIN = {"none", "no answer", "unknown", "not mentioned",
+            "not stated", "cannot be determined", "n a"}
 
 
 def normalize_answer(s: str) -> str:
@@ -124,4 +126,7 @@ def aggregate(rows: Sequence[Dict[str, Any]], k: int = 5) -> Dict[str, Any]:
     yn = [r for r in scored if normalize_answer(r["gold_answer"]) in {"yes", "no"}]
     agg["em_yesno"] = mean(yn, "em")
     agg["n_yesno"] = len(yn)
+    abstain = [r for r in scored if normalize_answer(r["prediction"]) in _ABSTAIN]
+    agg["abstain_rate"] = round(len(abstain) / len(scored), 4)
+    agg["n_abstain"] = len(abstain)
     return agg
