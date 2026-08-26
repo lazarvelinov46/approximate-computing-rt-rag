@@ -11,6 +11,10 @@ results/*
 !results/baseline_explain_summary.json
 !results/baseline_v1_results.csv
 !results/baseline_v1_summary.json
+!results/baseline_1k_results.csv
+!results/baseline_1k_summary.json
+!results/baseline_explain_1k_results.csv
+!results/baseline_explain_1k_summary.json
 figures/*
 !figures/.gitkeep
 /data/
