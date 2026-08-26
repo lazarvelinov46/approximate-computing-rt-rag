@@ -7,11 +7,11 @@ models:
   embedder:        BAAI/bge-small-en-v1.5
 
 dataset:
-  name: hotpotqa/hotpot_qa            # placeholder — see open decision #1
+  name: hotpotqa/hotpot_qa
   config: distractor
   split: validation
-  subset_size: 500           # keep small for free-tier iteration
-  min_paragraphs: 10        # distractor setting is defined as 10 candidates
+  subset_size: 1000
+  min_paragraphs: 10
 
 retrieval:
   top_k: 5
