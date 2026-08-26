@@ -61,7 +61,7 @@ ac-rag-stack/
 
 ## Roadmap
 - **Phase 0** — scaffold + smoke test (env, model load, tiny retrieval). *Complete.*
-- **Phase 1** — precise baseline end-to-end (Flat index, FP16 cache, full context). *Complete:* EM 0.390 / F1 0.486 / recall@5 0.916 (short regime); EM 0.422 / F1 0.539 (explain regime), 500 HotpotQA distractor questions.
+- **Phase 1** — precise baseline end-to-end (Flat index, FP16 cache, full context). *Complete:* EM 0.391 / F1 0.507 / recall@5 0.916 (short regime); EM 0.424 / F1 0.559 (explain regime), 1000 HotpotQA distractor questions.
 - **Phase 2** — single-knob sweeps for *quality* metrics (hardware-independent; free Kaggle). <- we are here
 - **Phase 3** — dedicated-GPU timing + energy runs (RTX 4090).
 - **Phase 4** — joint sweeps, Pareto frontier, plots, write-up.

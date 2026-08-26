@@ -47,32 +47,60 @@ knob changes would alter batch composition and contaminate the measured delta.
 
 ## Generation regimes (Phase 1)
 
-Two regimes over the same frozen 500 questions and the same retrieval. Held
-fixed within a sweep; swept independently.
+Two regimes over the same frozen 1000 questions and the same retrieval.
+Held fixed within a sweep; swept independently.
 
 | | short | explain |
 |---|---|---|
-| EM | 0.390 | 0.422 |
-| F1 | 0.486 | 0.539 |
+| EM | 0.391 | 0.424 |
+| F1 | 0.507 | 0.559 |
 | recall@5 | 0.916 | 0.916 |
-| EM, complete evidence (n=418) | 0.438 | 0.474 |
-| EM, incomplete evidence (n=82) | 0.146 | 0.159 |
+| EM, complete evidence (n=838) | 0.442 | 0.485 |
+| EM, incomplete evidence (n=162) | 0.130 | 0.111 |
+| EM, bridge (n=808) | 0.359 | 0.412 |
+| EM, comparison (n=192) | 0.526 | 0.474 |
+| EM, yes/no (n=65) | 0.646 | 0.646 |
+| abstention rate | 0.010 | 0.008 |
 | decode tokens p50 | ~3 | 92 |
-| decode tokens p99 | — | 213 |
+| decode tokens p99 | — | 224 |
 | max_new_tokens | 32 | 256 |
-| cap / parse failures | — | 0.8% |
+| cap / parse failures | — | 0.6% |
 
-McNemar exact on the paired EM outcomes: 68 explain-only correct vs 52
-short-only, p = 0.171. The regimes are NOT significantly different on
-quality; they differ in decode profile. They disagree on 120 of 500
-questions while landing at comparable accuracy.
+McNemar exact on the paired EM outcomes at n=1000: 120 explain-only correct
+vs 87 short-only, 207 discordant, p = 0.0259. The explain regime is
+significantly better on quality as well as longer in decode profile.
+(At n=500 the same test gave 68 vs 52, p = 0.171 — not significant. The
+effect size was nearly identical, 56.7% vs 58.0% of discordant pairs; only
+the power changed. A non-significant result at n=500 was absence of
+evidence, not evidence of absence.)
 
-Explain-regime failures: 4/500 rows hit the 256-token cap, and those are
-exactly the 4 rows that fail to parse — a single failure mode. They are soft
-repetition loops (the model enumerates numbered sentences past the 5 passages
+Reasoning helps where chaining is required and costs a little where it is
+not: bridge EM rises 0.359 -> 0.412 while comparison EM falls 0.526 -> 0.474.
+Both subgroups are large enough at n=1000 for this to be a real pattern.
+
+Explain-regime failures: 6/1000 rows hit the 256-token cap, and those are
+exactly the 6 rows that fail to parse — a single failure mode. They are soft
+repetition loops (the model enumerates numbered sentences past the passages
 it was given), not long legitimate chains, so a higher cap does not recover
-them (confirmed: same 1/32 truncation at caps of 256 and 512).
+them (confirmed: same behaviour at caps of 256 and 512).
 
+Abstention: the model occasionally answers the literal string "None".
+10/1000 in the short regime, 8/1000 in explain. Tracked as `abstain_rate`
+because it is a distinct degradation channel — a knob that damages fact
+location may push the model toward abstaining rather than answering wrongly,
+and aggregate EM cannot tell those apart.
+
+## Subset size
+
+The evaluation subset was raised from 500 to 1000 questions before Phase 2.
+Because the loader shuffles an index list with a fixed seed and takes the
+first N valid examples, the 1000-question set is a strict superset of the
+500-question set: the original questions keep their positions, therefore
+their batch partitions, and their predictions are bitwise identical across
+both runs (verified: 0 changed predictions on the shared 500, both regimes).
+
+The 500-question artefacts are retained as a subset-size robustness check.
+1008 rows were drawn to yield 1000; 8 were excluded as short.
 ## Prompt selection
 
 Both system prompts were selected on a 200-question dev sample drawn with
