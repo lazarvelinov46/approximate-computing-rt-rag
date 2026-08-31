@@ -1,0 +1,54 @@
+{
+  "setting": "regime2_a1_baseline_explain",
+  "mode": "explain",
+  "regime": 2,
+  "corpus_tier": "A1",
+  "corpus_sha256": "1c8d4442c84f145afbda9a01c1c56b0b7d580ba67204747b8c457f0439c58c8c",
+  "n_corpus": 66581,
+  "seed": 42,
+  "dataset": {
+    "name": "hotpotqa/hotpot_qa",
+    "config": "distractor",
+    "split": "validation",
+    "subset_size": 1000,
+    "min_paragraphs": 10
+  },
+  "models": {
+    "generator": "Qwen/Qwen2.5-3B-Instruct",
+    "generator_small": "Qwen/Qwen2.5-1.5B-Instruct",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "retrieval": {
+    "top_k": 5,
+    "embed_dim": 384
+  },
+  "generation": {
+    "batch_size": 16,
+    "max_new_tokens": 32,
+    "max_new_tokens_explain": 256,
+    "padding_side": "left"
+  },
+  "metrics": {
+    "n": 1000,
+    "em": 0.319,
+    "f1": 0.4385,
+    "recall@5": 0.768,
+    "complete_frac": 0.573,
+    "em_complete": 0.4695,
+    "n_complete": 573,
+    "em_incomplete": 0.1171,
+    "n_incomplete": 427,
+    "em_bridge": 0.2884,
+    "n_bridge": 808,
+    "em_comparison": 0.4479,
+    "n_comparison": 192,
+    "em_yesno": 0.5692,
+    "n_yesno": 65,
+    "abstain_rate": 0.015,
+    "n_abstain": 15,
+    "trunc_rate": 0.007,
+    "parse_fail_rate": 0.006,
+    "decode_p50": 90.0,
+    "decode_p99": 242.03999999999996
+  }
+}
