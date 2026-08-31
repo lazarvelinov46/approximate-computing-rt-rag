@@ -136,3 +136,73 @@ decomposition.
 Note on sample size: an initial 32-question pilot showed B 0.500 vs C 0.375
 and nearly caused C to be abandoned. At n=200 the gap vanished. Prompt
 variants are compared on the dev sample only.
+
+## Index regime 2 — pooled A1 corpus
+
+Corpus: HotpotQA distractor validation split, pooled and deduplicated by
+normalised title. 73,700 raw (title, paragraph) pairs -> 66,581 passages.
+sha256 1c8d4442c84f145a... (manifest: results/corpus_a1_manifest.json).
+Title->text bijection verified: zero titles with multiple texts, zero gold
+titles missing, zero text drift against the frozen 1000.
+
+Embedding: 66,581 passages in 199.6s (334/s), 98 MiB fp32. Recomputed per
+session, never cached — knob 2 changes the vector representation.
+
+Exact flat search: 1000 queries in 0.28s = 0.28 ms/query, against ~429 ms
+per question for generation. Retrieval is 0.065% of end-to-end latency, so
+knob 1 has almost no latency to recover at this scale; its efficiency story
+is knob 2's memory footprint, not search time.
+
+Prompt tokens (regime 2, n=1000): mean 761, p50 749, p90 981, p99 1178,
+max 1325 — shorter worst case than regime 1 (1524) despite the far larger
+search space, likely because bge truncates at 512 tokens and long passages
+therefore rank lower. batch_size=16 retains more headroom than in Phase 1.
+
+### Precise baseline (exact search, fp32, fp16 KV, top-k 5)
+
+| | short | explain | [regime 1 short] |
+|---|---|---|---|
+| EM | 0.306 | 0.319 | 0.391 |
+| F1 | 0.4037 | 0.4385 | 0.5067 |
+| recall@5 | 0.768 | 0.768 | 0.916 |
+| complete_frac | 0.573 | 0.573 | 0.838 |
+| em_complete | 0.4503 | 0.4695 | 0.4415 |
+| em_incomplete | 0.1124 | 0.1171 | 0.1296 |
+| em_bridge | 0.2537 | 0.2884 | 0.3589 |
+| em_comparison | 0.526 | 0.4479 | 0.526 |
+| abstain_rate | 0.014 | 0.015 | 0.010 |
+
+The EM drop is entirely an evidence-completeness effect. Projecting regime-1
+conditional EMs onto regime-2 complete_frac predicted 0.308 / 0.325 before
+the runs; observed 0.306 / 0.319, both within one SE. Conditional EMs are
+unchanged across regimes, so the generator's transfer function is stable and
+regime-2 EM movement during a sweep is attributable to retrieval.
+
+### Bridge vs comparison (recall@5, exact search)
+
+| qtype | n | regime 1 | regime 2 | Δ | both-gold r1 | both-gold r2 |
+|---|---|---|---|---|---|---|
+| bridge | 808 | 0.8967 | 0.7141 | -0.1825 | 0.801 | 0.474 |
+| comparison | 192 | 0.9974 | 0.9948 | -0.0026 | 0.995 | 0.990 |
+
+Comparison questions name both entities and are directly addressable by a
+single dense query; they lose one question out of 192 across a 6,658x
+expansion of the search space. Bridge questions reach the second hop only
+through the first and absorb the entire degradation.
+
+### Explain regime attenuates in regime 2
+
+McNemar exact, paired EM, n=1000: 84 explain-only correct vs 71 short-only,
+155 discordant, share 0.542, p = 0.335 (regime 1: 120/87, 207 discordant,
+share 0.580, p = 0.0259).
+
+Both the discordant count and the effect size fell, which is attenuation
+rather than lost power (contrast the n=500 -> n=1000 expansion, where the
+share held at ~0.58 and only power changed). Explain's benefit is
+concentrated on bridge chaining, and 52.6% of bridge questions no longer
+retrieve both passages — reasoning cannot chain evidence that was never
+retrieved.
+
+Consequence: knobs 1 and 2 sweep in SHORT mode only, no explain arm.
+Knobs 3 and 4 retain explain arms; they run in regime 1, where the effect
+holds, and knob 4 needs decode-time context to act on.
