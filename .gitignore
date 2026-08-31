@@ -15,6 +15,7 @@ results/*
 !results/baseline_1k_summary.json
 !results/baseline_explain_1k_results.csv
 !results/baseline_explain_1k_summary.json
+!results/corpus_a1_manifest.json
 figures/*
 !figures/.gitkeep
 /data/
