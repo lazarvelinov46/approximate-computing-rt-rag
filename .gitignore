@@ -20,6 +20,11 @@ results/*
 !results/regime2_a1_baseline_summary.json
 !results/regime2_a1_baseline_explain_results.csv
 !results/regime2_a1_baseline_explain_summary.json
+!results/knob1_curves.png
+!results/knob1_summary.json
+!results/knob1_dense_sweep.csv
+!results/knob1_results.csv
+!results/knob1_summary.csv
 figures/*
 !figures/.gitkeep
 /data/
