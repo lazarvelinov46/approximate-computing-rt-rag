@@ -1,0 +1,223 @@
+{
+  "knob": 1,
+  "name": "retrieval search effort",
+  "regime": 2,
+  "corpus_tier": "A1",
+  "n_corpus": 66581,
+  "corpus_sha256": "1c8d4442c84f145afbda9a01c1c56b0b7d580ba67204747b8c457f0439c58c8c",
+  "mode": "short",
+  "reason_short_only": "explain advantage attenuates in regime 2: McNemar p=0.335, share 0.542 vs 0.580 in regime 1",
+  "build_constants": {
+    "hnsw_M": 32,
+    "hnsw_efConstruction": 200,
+    "ivf_nlist": 1024,
+    "seed": 42,
+    "metric": "inner_product",
+    "single_threaded_build": true,
+    "rebuild_determinism_verified": true
+  },
+  "selection_rule_preregistered": {
+    "targets_ann_recall": [
+      1.0,
+      0.95,
+      0.9,
+      0.8,
+      0.6,
+      0.4
+    ],
+    "note": "HNSW floor is ef=k=5 -> ANN recall 0.743; targets 0.60 and 0.40 unreachable by HNSW. IVF added at matched complete_frac to test structure-independence, plus nprobe=1 to extend range below the HNSW floor."
+  },
+  "mcnemar": {
+    "hnsw_ef32_vs_ivf_nprobe48": {
+      "b": 20,
+      "c": 13,
+      "discordant": 33,
+      "p": 0.2962
+    },
+    "hnsw_ef5_vs_ivf_nprobe6": {
+      "b": 61,
+      "c": 56,
+      "discordant": 117,
+      "p": 0.7117
+    },
+    "exact_vs_hnsw_ef32": {
+      "b": 2,
+      "c": 11,
+      "discordant": 13,
+      "p": 0.0225
+    },
+    "exact_vs_hnsw_ef5": {
+      "b": 25,
+      "c": 56,
+      "discordant": 81,
+      "p": 0.0008
+    },
+    "exact_vs_ivf_nprobe1": {
+      "b": 39,
+      "c": 139,
+      "discordant": 178,
+      "p": 0.0
+    }
+  },
+  "settings": [
+    {
+      "setting": "regime2_a1_baseline",
+      "index": "flat",
+      "value": 0,
+      "ann_recall": 1.0,
+      "ndis": 66581.0,
+      "recall@5": 0.768,
+      "complete_frac": 0.573,
+      "em": 0.306,
+      "f1": 0.4037,
+      "em_projected": 0.306,
+      "em_complete": 0.4503,
+      "em_incomplete": 0.1124,
+      "em_bridge": 0.2537,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.014,
+      "em_residual": 0.0
+    },
+    {
+      "setting": "knob1_hnsw_ef32",
+      "index": "hnsw",
+      "value": 32,
+      "ann_recall": 0.9562,
+      "ndis": 1228.4,
+      "recall@5": 0.7275,
+      "complete_frac": 0.527,
+      "em": 0.297,
+      "f1": 0.3954,
+      "em_projected": 0.2905,
+      "em_complete": 0.4592,
+      "em_incomplete": 0.1163,
+      "em_bridge": 0.245,
+      "em_comparison": 0.5156,
+      "abstain_rate": 0.025,
+      "em_residual": 0.0065
+    },
+    {
+      "setting": "knob1_hnsw_ef16",
+      "index": "hnsw",
+      "value": 16,
+      "ann_recall": 0.9028,
+      "ndis": 766.3,
+      "recall@5": 0.692,
+      "complete_frac": 0.496,
+      "em": 0.292,
+      "f1": 0.3887,
+      "em_projected": 0.28,
+      "em_complete": 0.4577,
+      "em_incomplete": 0.129,
+      "em_bridge": 0.2401,
+      "em_comparison": 0.5104,
+      "abstain_rate": 0.034,
+      "em_residual": 0.012
+    },
+    {
+      "setting": "knob1_hnsw_ef8",
+      "index": "hnsw",
+      "value": 8,
+      "ann_recall": 0.8254,
+      "ndis": 512.1,
+      "recall@5": 0.6265,
+      "complete_frac": 0.424,
+      "em": 0.287,
+      "f1": 0.3813,
+      "em_projected": 0.2557,
+      "em_complete": 0.4646,
+      "em_incomplete": 0.1562,
+      "em_bridge": 0.245,
+      "em_comparison": 0.4635,
+      "abstain_rate": 0.044,
+      "em_residual": 0.0313
+    },
+    {
+      "setting": "knob1_hnsw_ef5",
+      "index": "hnsw",
+      "value": 5,
+      "ann_recall": 0.743,
+      "ndis": 406.5,
+      "recall@5": 0.572,
+      "complete_frac": 0.365,
+      "em": 0.275,
+      "f1": 0.3618,
+      "em_projected": 0.2357,
+      "em_complete": 0.4822,
+      "em_incomplete": 0.1559,
+      "em_bridge": 0.2351,
+      "em_comparison": 0.4427,
+      "abstain_rate": 0.052,
+      "em_residual": 0.0393
+    },
+    {
+      "setting": "knob1_ivf_nprobe48",
+      "index": "ivf",
+      "value": 48,
+      "ann_recall": 0.9202,
+      "ndis": 3577.4,
+      "recall@5": 0.7255,
+      "complete_frac": 0.527,
+      "em": 0.304,
+      "f1": 0.3955,
+      "em_projected": 0.2905,
+      "em_complete": 0.4668,
+      "em_incomplete": 0.1226,
+      "em_bridge": 0.2512,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.024,
+      "em_residual": 0.0135
+    },
+    {
+      "setting": "knob1_ivf_nprobe6",
+      "index": "ivf",
+      "value": 6,
+      "ann_recall": 0.7076,
+      "ndis": 500.0,
+      "recall@5": 0.573,
+      "complete_frac": 0.368,
+      "em": 0.28,
+      "f1": 0.3716,
+      "em_projected": 0.2367,
+      "em_complete": 0.4973,
+      "em_incomplete": 0.1535,
+      "em_bridge": 0.2277,
+      "em_comparison": 0.5,
+      "abstain_rate": 0.048,
+      "em_residual": 0.0433
+    },
+    {
+      "setting": "knob1_ivf_nprobe1",
+      "index": "ivf",
+      "value": 1,
+      "ann_recall": 0.3644,
+      "ndis": 91.5,
+      "recall@5": 0.3025,
+      "complete_frac": 0.116,
+      "em": 0.206,
+      "f1": 0.2792,
+      "em_projected": 0.1516,
+      "em_complete": 0.4397,
+      "em_incomplete": 0.1753,
+      "em_bridge": 0.1646,
+      "em_comparison": 0.3802,
+      "abstain_rate": 0.108,
+      "em_residual": 0.0544
+    }
+  ],
+  "models": {
+    "generator": "Qwen/Qwen2.5-3B-Instruct",
+    "generator_small": "Qwen/Qwen2.5-1.5B-Instruct",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "retrieval": {
+    "top_k": 5,
+    "embed_dim": 384
+  },
+  "generation": {
+    "batch_size": 16,
+    "max_new_tokens": 32,
+    "max_new_tokens_explain": 256,
+    "padding_side": "left"
+  }
+}
