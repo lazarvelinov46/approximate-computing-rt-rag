@@ -254,6 +254,11 @@ Both nulls are adequately powered (33 and 117 discordant pairs). Evidence
 completeness is a sufficient statistic for downstream quality; *how* the
 retriever lost the evidence does not propagate.
 
+Replicated in knob 2: PQ vs SQ at matched footprint is also null (p=0.552,
+45 discordant). Two knobs, four structures, two adequately powered nulls.
+Downstream quality is a function of evidence delivered, not of the mechanism
+that degraded it.
+
 ### Approximation is cheap but not free
 
 | setting | ANN recall | ndis/query | EM | vs exact |
@@ -331,3 +336,111 @@ computations, not seconds. Together with the KV finding (activations exceed KV
 the budget. This is the characterisation the study set out to produce, not a
 disappointment, and it argues that short-context RAG's approximation headroom
 lives in prefill and decode.
+
+## Knob 2 — embedding precision
+
+Regime 2, A1 corpus, short mode. nbits fixed at 8 for the headline curve.
+Isolation: IndexPQ and IndexScalarQuantizer scan EXHAUSTIVELY, so the only
+error source is quantisation — nothing is skipped. IVF-PQ fuses knobs 1 and 2
+and is reserved for the Phase 4 joint sweep. Both index types verified to
+rebuild identically; PQ's k-means seed lives at `index.pq.cp.seed`, not
+`index.cp.seed` (IndexPQ is not an IVF index).
+
+Selection anchored on complete_frac rather than ANN recall: complete_frac is
+what predicts EM, and it barely moves until ANN recall falls below ~0.8, so
+anchoring on ANN recall would have spent most runs where nothing happens.
+
+Full curves: results/knob2_dense_sweep.csv, results/knob2_summary.csv,
+results/knob2_summary.json, results/knob2_curves.png.
+
+### Compression is free to 24x, breaks between 32x and 48x
+
+| setting | compression | corpus MiB | ann_recall | complete_frac | EM | McNemar vs exact |
+|---|---|---|---|---|---|---|
+| exact | 1x | 97.5 | 1.0000 | 0.573 | 0.306 | — |
+| sq 8-bit | 4x | 24.4 | 0.9926 | 0.573 | 0.308 | 3/1, d=4, p=0.625 * |
+| pq m=192 | 8x | 12.2 | 0.9244 | 0.572 | 0.306 | 17/17, d=34, p=1.000 |
+| sq 4-bit | 8x | 12.2 | 0.8964 | 0.568 | 0.301 | — |
+| pq m=64 | 24x | 4.1 | 0.7146 | 0.527 | 0.306 | 47/47, d=94, p=1.000 |
+| pq m=48 | 32x | 3.0 | 0.6564 | 0.498 | 0.286 | 39/59, d=98, p=0.054 |
+| pq m=32 | 48x | 2.0 | 0.5420 | 0.423 | 0.275 | 42/73, d=115, p=0.0049 |
+| pq m=16 | 96x | 1.0 | 0.3246 | 0.201 | 0.201 | 40/145, d=185, p<0.0001 |
+
+* only 4 of 1000 answers changed at all; p is uninformative but the
+  behavioural identity is near-total.
+
+The m=64 null is the strongest result here: 94 discordant pairs — ample power
+— splitting exactly 47/47 at 24x compression, despite complete_frac falling
+0.046 below exact. Both well-powered nulls (17/17 and 47/47) are perfectly
+symmetric, which fits the mechanism: quantisation noise reshuffles WHICH
+questions receive complete evidence roughly at random, so as many questions
+gain a gold passage as lose one. Approximation here behaves more like a
+permutation of which questions succeed than a systematic degradation.
+
+Operating point: free to 24x, boundary at 32x (p=0.054 — suggestive, not
+established), significant loss from 48x.
+
+### Quantisation reorders without losing documents
+
+At pq m=192: ANN recall 0.9244 but exact_match_topk 0.396. The index disagrees
+with exact search's full ordered top-5 on 60% of queries while recall@5 moves
+0.768 -> 0.766. Quantisation error is large relative to the tiny gaps between
+the top few candidates (all similar to the query) and small relative to the
+gaps separating relevant from irrelevant.
+
+This is the opposite corner from knob 1, whose errors DROPPED documents:
+at ef=64, ANN recall 0.981 with list identity 0.926. Reporting both metrics is
+what makes the distinction visible; either alone would mislead.
+
+### The generator is untouched
+
+em_complete across 1x to 48x compression: 0.4503, 0.4520, 0.4476, 0.4507,
+0.4516, 0.4518, 0.4539 — never moving more than 0.004. Quantising the
+embeddings 48-fold does not damage generation at all; conditioned on receiving
+both gold passages the model answers exactly as well. All damage is in evidence
+delivery. (At 96x, em_complete jumps to 0.5075 — the selection effect seen in
+knob 1: at complete_frac 0.201 the surviving questions are the easy ones.)
+
+Abstention rises 0.014 -> 0.083, more gently than knob 1's 0.014 -> 0.108 at
+comparable complete_frac. PQ returns PLAUSIBLE wrong passages — nearest
+neighbours in a lossy space are still semantically near — whereas aggressive
+ANN search returns passages it stumbled into. Plausible-but-wrong context does
+not trigger the "this is junk" response, which is why knob 2's projection
+residuals are smaller than knob 1's.
+
+### Byte count is not a sufficient statistic
+
+Matched-footprint probe at nbits=4 vs 8, three pairs, all favouring
+fewer-and-finer:
+
+| bytes | more-and-coarser | fewer-and-finer | Δ ann_recall |
+|---|---|---|---|
+| 96 | m=192, nbits=4: 0.7876 | m=96, nbits=8: 0.8042 | +0.017 |
+| 48 | m=96, nbits=4: 0.6266 | m=48, nbits=8: 0.6564 | +0.030 |
+| 24 | m=48, nbits=4: 0.4262 | m=24, nbits=8: 0.4610 | +0.035 |
+
+256 centroids per subspace is worth more than doubling the number of
+subspaces. nbits=4 does train 8-15x faster (16 centroids vs 256), so the
+8-bit advantage costs build time, not memory. Fixing nbits=8 was correct.
+
+### PQ vs SQ at matched footprint: null
+
+At 192 bytes, PQ's learned codebooks beat SQ's uniform grid by 0.028 ANN
+recall (0.9244 vs 0.8964) — bge-small's vectors are not uniformly distributed.
+That advantage does not reach EM: McNemar b=20, c=25, 45 discordant, p=0.552.
+Adequately powered null.
+
+### Scaling argument
+
+At A1 scale, 97.5 MiB -> 4.1 MiB is a curiosity. The ratio is the point: the
+same 24x on the 21M-passage DPR corpus rejected in P2-0 is 32 GB -> 1.3 GB,
+which is the difference between "needs a server" and "fits in RAM". Knob 2 is
+the knob whose result generalises beyond this corpus scale, and unlike knob 1
+its efficiency axis (bytes) is a resource that actually binds.
+
+ndis_per_query is the WRONG x-axis for this knob — every setting scans
+exhaustively, so it reads 66,581 throughout. Note also that PQ search does not
+decompress: FAISS precomputes query-to-centroid distances per subspace and
+scores each passage with m table lookups instead of d multiply-adds, so PQ
+makes each comparison cheaper as well as smaller. That second benefit is not
+captured by any Phase 2 metric and belongs to Phase 3.
