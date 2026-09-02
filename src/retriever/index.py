@@ -156,17 +156,33 @@ def set_nprobe(index, nprobe: int):
 
 
 # ---------------------------------------------------------------- KNOB 2 -----
+# Both indexes below scan EXHAUSTIVELY. Nothing is skipped, so the only error
+# source is the gap between a vector and its compressed reconstruction. That
+# isolation is what separates knob 2 from knob 1.
+
+# Scalar quantizer names. FAISS caps SQ at 8 bits per dimension, so this knob
+# cannot reach the aggressive end of the compression axis — which is itself
+# the finding that motivates PQ.
+SQ_TYPES = {8: "QT_8bit", 6: "QT_6bit", 4: "QT_4bit"}
+
 
 def build_pq_index(vectors: np.ndarray, m: int, nbits: int = 8,
                    seed: int = INDEX_SEED, single_thread: bool = True):
-    """Product-quantised index with EXHAUSTIVE scan. Knob 2 only.
+    """Product-quantised index, exhaustive scan. Knob 2 only.
 
-    Every vector is still compared against the query — nothing is skipped —
-    but each is stored as `m` sub-codes of `nbits` instead of `d` floats.
-    The only error source is quantisation, which is what isolates knob 2.
+    Splits each vector into `m` contiguous subvectors and replaces each with
+    the index of its nearest centroid in a codebook of 2**nbits entries,
+    learned by k-means over the corpus. Storage becomes m*nbits/8 bytes per
+    vector regardless of d.
 
-    Compression: d*4 bytes -> m*nbits/8 bytes per vector. At d=384, m=48,
-    nbits=8 that is 1536 -> 48 bytes, 32x.
+    At d=384, m=48, nbits=8: 1536 -> 48 bytes, 32x.
+
+    Search never decompresses. FAISS precomputes query-to-centroid distances
+    per subspace, then scores each passage with m table lookups instead of
+    d multiply-adds — so PQ makes each comparison cheaper as well as smaller.
+
+    NOTE: IndexPQ is not an IVF index, so clustering parameters live on the
+    ProductQuantizer (index.pq.cp), not on the index itself.
     """
     import faiss
 
@@ -178,10 +194,59 @@ def build_pq_index(vectors: np.ndarray, m: int, nbits: int = 8,
         faiss.omp_set_num_threads(1)
 
     index = faiss.IndexPQ(d, m, nbits, faiss.METRIC_INNER_PRODUCT)
-    index.cp.seed = seed
+    try:
+        index.pq.cp.seed = seed
+    except AttributeError:                  # older/newer faiss layout
+        pass
     index.train(v)
     index.add(v)
     return index
+
+
+def build_sq_index(vectors: np.ndarray, nbits: int = 8,
+                   single_thread: bool = True):
+    """Scalar-quantised index, exhaustive scan. Knob 2 only.
+
+    Each dimension is mapped independently onto 2**nbits evenly spaced levels
+    spanning that dimension's range across the corpus. Output is still d
+    numbers, just narrower ones, so compression tops out at 4x (fp32 -> 8 bit).
+
+    No k-means, so training is a single pass computing per-dimension ranges —
+    much cheaper than PQ, and deterministic without a seed.
+    """
+    import faiss
+
+    if nbits not in SQ_TYPES:
+        raise ValueError(f"nbits must be one of {sorted(SQ_TYPES)}, got {nbits}")
+    v = _as_faiss(vectors)
+    if single_thread:
+        faiss.omp_set_num_threads(1)
+
+    qtype = getattr(faiss.ScalarQuantizer, SQ_TYPES[nbits])
+    index = faiss.IndexScalarQuantizer(v.shape[1], qtype,
+                                       faiss.METRIC_INNER_PRODUCT)
+    index.train(v)
+    index.add(v)
+    return index
+
+
+def bytes_per_vector(kind: str, d: int = 384, m: Optional[int] = None,
+                     nbits: int = 8) -> int:
+    """Stored size per vector. This is knob 2's efficiency axis.
+
+    ndis_per_query is the WRONG x-axis here: every setting scans exhaustively,
+    so it reads N for all of them. Knob 1 traded work for quality; knob 2
+    trades memory for quality.
+    """
+    if kind == "flat":
+        return d * 4
+    if kind == "pq":
+        if m is None:
+            raise ValueError("m required for pq")
+        return m * nbits // 8
+    if kind == "sq":
+        return d * nbits // 8
+    raise ValueError(f"unknown kind {kind!r}")
 
 
 # --------------------------------------------------------------- PHASE 4 -----
