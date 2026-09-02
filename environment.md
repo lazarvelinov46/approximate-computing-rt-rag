@@ -206,3 +206,128 @@ retrieved.
 Consequence: knobs 1 and 2 sweep in SHORT mode only, no explain arm.
 Knobs 3 and 4 retain explain arms; they run in regime 1, where the effect
 holds, and knob 4 needs decode-time context to act on.
+
+
+## Knob 1 — retrieval search effort
+
+Regime 2, A1 corpus, short mode only. Build constants frozen: HNSW M=32,
+efConstruction=200; IVF nlist=1024; seed 42; inner-product metric;
+single-threaded build. Rebuild determinism verified — two independent builds
+of each index retrieve identically, so indexes are reproducible from their
+parameters rather than needing to be persisted.
+
+Method: `efSearch` and `nprobe` are query-time fields, so a dense sweep of 31
+settings costs no GPU time and no generation. ANN recall, recall@5 and
+complete_frac are deterministic given a fixed index and question set; only EM
+carries sampling noise. The dense sweep therefore gets 31 points and EM gets
+8, each metric sampled at the resolution it supports. End-to-end settings were
+chosen before any EM was seen, by a pre-registered rule targeting ANN recall
+1.00 / 0.95 / 0.90 / 0.80 / 0.60 / 0.40.
+
+Full curves: results/knob1_dense_sweep.csv, results/knob1_summary.csv,
+results/knob1_summary.json, results/knob1_curves.png.
+
+### HNSW dominates IVF at equal work
+
+| distance comps/query | HNSW ANN recall | IVF ANN recall |
+|---|---|---|
+| ~500 | 0.825 (ef=8) | 0.708 (nprobe=6) |
+| ~1000 | 0.937 (ef=24) | 0.803 (nprobe=12) |
+| ~2000 | 0.981 (ef=64) | 0.891 (nprobe=32) |
+| ~3500 | 0.992 (ef=128) | 0.920 (nprobe=48) |
+
+The margin widens with budget. IVF needs the full 66,581 comparisons to reach
+ANN recall 1.0, so it has no efficiency advantage at the top of its range.
+
+### Structure-independence at matched evidence
+
+At equal complete_frac, HNSW and IVF give indistinguishable EM despite
+different error geometry (graph-traversal truncation vs cell-boundary misses),
+and despite differing in ANN recall by up to 0.036:
+
+| pair | complete_frac | McNemar |
+|---|---|---|
+| ef=32 vs nprobe=48 | 0.527 / 0.527 | b=20 c=13, p=0.296 |
+| ef=5 vs nprobe=6 | 0.365 / 0.368 | b=61 c=56, p=0.712 |
+
+Both nulls are adequately powered (33 and 117 discordant pairs). Evidence
+completeness is a sufficient statistic for downstream quality; *how* the
+retriever lost the evidence does not propagate.
+
+### Approximation is cheap but not free
+
+| setting | ANN recall | ndis/query | EM | vs exact |
+|---|---|---|---|---|
+| exact | 1.0000 | 66,581 | 0.306 | — |
+| hnsw ef=32 | 0.9562 | 1,228 | 0.297 | p=0.0225 (b=2, c=11) |
+| hnsw ef=16 | 0.9028 | 766 | 0.292 | — |
+| hnsw ef=8 | 0.8254 | 512 | 0.287 | — |
+| hnsw ef=5 | 0.7430 | 406 | 0.275 | p=0.0008 (b=25, c=56) |
+| ivf nprobe=1 | 0.3644 | 92 | 0.206 | p<0.0001 (b=39, c=139) |
+
+HNSW at ef=32 does 54x less work for 0.009 EM. That gap is well inside one SE
+(0.015) on an unpaired comparison and was initially called noise — wrongly.
+Only 13 of 1000 questions changed state, but 11 of 13 went the wrong way, and
+McNemar gives p=0.0225. **The quality loss from search-effort approximation is
+small but statistically reliable from ef=32 downward.**
+
+Methodological consequence: acceptance criteria for the remaining knobs use
+the paired test, not the aggregate gap. Settings share questions, model and
+decoding, so most predictions are identical across settings and the shared
+variance buries small effects in the aggregate.
+
+### The projection model breaks under degradation
+
+EM projected from complete_frac and the baseline conditionals
+(em = cf x 0.4503 + (1-cf) x 0.1124) was accurate to within one SE on the
+regime-2 baseline, but underpredicts every degraded setting. Residuals: +0.007
+at ANN recall 0.956, rising monotonically to +0.054 at 0.364. All seven
+positive (sign test p ~ 0.008).
+
+Mechanism — the conditional is not constant:
+
+| setting | em_incomplete | abstain_rate |
+|---|---|---|
+| exact | 0.1124 | 0.014 |
+| hnsw ef=32 | 0.1163 | 0.025 |
+| hnsw ef=16 | 0.1290 | 0.034 |
+| hnsw ef=8 | 0.1562 | 0.044 |
+| hnsw ef=5 | 0.1559 | 0.052 |
+| ivf nprobe=1 | 0.1753 | 0.108 |
+
+Under exact search, incomplete retrieval still supplies five topically
+plausible passages and the generator confidently answers from the wrong hop.
+Under aggressive approximation it gets obvious junk, recognises it, and either
+abstains or falls back on parametric memory — which for HotpotQA's famous
+entities is sometimes correct. Abstention rises 7.7x and directly costs EM
+(abstentions score zero), so the parametric-fallback effect more than
+compensates for it.
+
+This confirms the abstention prediction recorded in the Phase 1 notes: a knob
+that damages fact location does push the model toward abstaining rather than
+answering wrongly, and aggregate EM cannot separate those channels.
+
+em_complete also drifts up (0.450 -> 0.482) as a selection effect: the
+questions still retrieving complete evidence under a degraded index are the
+easy ones. The exception is nprobe=1 (0.4397), where the complete bucket holds
+only ~116 questions and is both noisy and oddly selected.
+
+Use the projection model for baselines, not for degraded-retrieval regimes.
+
+### Comparison questions are not immune here
+
+Comparison EM held at 0.526 through nprobe=48, then fell to 0.443 (ef=5) and
+0.380 (nprobe=1). They were immune to the regime-1 -> regime-2 transition
+because both entities are named and directly addressable; they are not immune
+to search-effort approximation, which fails to find passages that exist and
+are findable.
+
+### Efficiency framing
+
+Exact search was already 0.28 ms/query against ~429 ms of generation — 0.065%
+of end-to-end latency. Knob 1's payoff is therefore measured in distance
+computations, not seconds. Together with the KV finding (activations exceed KV
+~5.6:1), two of the five knobs act on parts of the system that do not dominate
+the budget. This is the characterisation the study set out to produce, not a
+disappointment, and it argues that short-context RAG's approximation headroom
+lives in prefill and decode.

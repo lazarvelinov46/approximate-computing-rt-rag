@@ -13,7 +13,7 @@ real-time budget — per-knob curves plus a joint trade-off surface.
 | # | Knob | Subsystem | Precise baseline | Approximate variant | AC technique | Module |
 |---|------|-----------|------------------|---------------------|--------------|--------|
 | 1 | Search effort | Retriever | Exact (FAISS Flat) | HNSW `ef` / IVF `nprobe` | Approximate search | `src/retriever/index.py` |
-| 2 | Embedding precision | Retriever | FP32 vectors | Product quantization (IVF-PQ) | Precision scaling | `src/retriever/index.py` |
+| 2 | Embedding precision | Retriever | FP32 vectors | Product / scalar quantization (flat, exhaustive scan) | Precision scaling | `src/retriever/index.py` |
 | 3 | KV-cache precision | Generator | FP16 cache | INT8 / INT4 / INT2 KV | Precision scaling | `src/generator/kv_cache.py` |
 | 4 | KV-cache eviction | Generator | Full cache | Token dropping (H2O / SnapKV) | Computation skipping | `src/generator/eviction.py` |
 | 5 | Top-k (optional) | Retriever->prompt | Full top-k | Reduced k | Data sampling | `src/pipeline/rag.py` |
