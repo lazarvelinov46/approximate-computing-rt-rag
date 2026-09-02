@@ -25,6 +25,11 @@ results/*
 !results/knob1_dense_sweep.csv
 !results/knob1_results.csv
 !results/knob1_summary.csv
+!results/knob2_dense_sweep.csv
+!results/knob2_results.csv
+!results/knob2_summary.csv
+!results/knob2_curves.png
+!results/knob2_summary.json
 figures/*
 !figures/.gitkeep
 /data/
