@@ -18,6 +18,12 @@ real-time budget — per-knob curves plus a joint trade-off surface.
 | 4 | KV-cache eviction | Generator | Full cache | Token dropping (H2O / SnapKV) | Computation skipping | `src/generator/eviction.py` |
 | 5 | Top-k (optional) | Retriever->prompt | Full top-k | Reduced k | Data sampling | `src/pipeline/rag.py` |
 
+IVF-PQ is deliberately absent from the single-knob rows: it fuses skipping
+(knob 1) with precision loss (knob 2), so a curve produced by varying `m`
+inside an IVF index is a curve of both knobs at once. It is reserved for the
+Phase 4 joint sweep, where the question is whether the two error sources
+compose as the single-knob curves predict.
+
 ## Environment
 - **Compute now:** Kaggle Notebooks (free, ~30 GPU-hrs/week, P100 16 GB or 2xT4).
 - **Compute later:** RTX 4090 (RunPod ~$0.34/hr, or local) for final latency/energy runs only.
