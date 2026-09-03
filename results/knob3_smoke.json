@@ -1,0 +1,126 @@
+{
+  "task": "P2-5d knob 3 GPU smoke",
+  "regime": 1,
+  "n_smoke": 32,
+  "batch_size": 16,
+  "gpu": "Tesla T4",
+  "fp16_byte_identity_vs_baseline": true,
+  "padded_len_equals_encode_max": true,
+  "q_group_size": 32,
+  "short_timing": {
+    "kv_fp16": {
+      "sec": 12.65,
+      "factor": 1.0,
+      "identity": 1.0
+    },
+    "kv_hqq_n8_g32_r512": {
+      "sec": 15.76,
+      "factor": 1.25,
+      "identity": 1.0
+    },
+    "kv_hqq_n4_g32_r512": {
+      "sec": 17.43,
+      "factor": 1.38,
+      "identity": 1.0
+    },
+    "kv_hqq_n2_g32_r512": {
+      "sec": 25.26,
+      "factor": 2.0,
+      "identity": 0.0312
+    }
+  },
+  "explain_timing": {
+    "kv_fp16": {
+      "sec": 25.71,
+      "factor": 1.0
+    },
+    "kv_hqq_n4_g32_r512": {
+      "sec": 29.78,
+      "factor": 1.16
+    }
+  },
+  "axis_real_kv": {
+    "L0_k_n4": {
+      "axis0": 0.333679,
+      "axis1": 1.622053,
+      "axis0_better": true
+    },
+    "L0_k_n2": {
+      "axis0": 0.83241,
+      "axis1": 7.085001,
+      "axis0_better": true
+    },
+    "L0_v_n4": {
+      "axis0": 0.019738,
+      "axis1": 0.024599,
+      "axis0_better": true
+    },
+    "L0_v_n2": {
+      "axis0": 0.096582,
+      "axis1": 0.109927,
+      "axis0_better": true
+    },
+    "L12_k_n4": {
+      "axis0": 0.092509,
+      "axis1": 0.15021,
+      "axis0_better": true
+    },
+    "L12_k_n2": {
+      "axis0": 0.467347,
+      "axis1": 0.728031,
+      "axis0_better": true
+    },
+    "L12_v_n4": {
+      "axis0": 0.043705,
+      "axis1": 0.053839,
+      "axis0_better": true
+    },
+    "L12_v_n2": {
+      "axis0": 0.215823,
+      "axis1": 0.274005,
+      "axis0_better": true
+    },
+    "L24_k_n4": {
+      "axis0": 0.099915,
+      "axis1": 0.152006,
+      "axis0_better": true
+    },
+    "L24_k_n2": {
+      "axis0": 0.509027,
+      "axis1": 0.78412,
+      "axis0_better": true
+    },
+    "L24_v_n4": {
+      "axis0": 0.047124,
+      "axis1": 0.057494,
+      "axis0_better": true
+    },
+    "L24_v_n2": {
+      "axis0": 0.233752,
+      "axis1": 0.288094,
+      "axis0_better": true
+    },
+    "L35_k_n4": {
+      "axis0": 0.088827,
+      "axis1": 0.185014,
+      "axis0_better": true
+    },
+    "L35_k_n2": {
+      "axis0": 0.45933,
+      "axis1": 0.919963,
+      "axis0_better": true
+    },
+    "L35_v_n4": {
+      "axis0": 0.086381,
+      "axis1": 0.098999,
+      "axis0_better": true
+    },
+    "L35_v_n2": {
+      "axis0": 0.438803,
+      "axis1": 0.49775,
+      "axis0_better": true
+    }
+  },
+  "axis0_wins_keys": true,
+  "axis0_wins_values": true
+}

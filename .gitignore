@@ -30,6 +30,7 @@ results/*
 !results/knob2_summary.csv
 !results/knob2_curves.png
 !results/knob2_summary.json
+!results/knob3_smoke.json
 figures/*
 !figures/.gitkeep
 /data/
