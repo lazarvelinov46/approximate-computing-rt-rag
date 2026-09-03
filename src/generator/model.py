@@ -104,17 +104,42 @@ def build_prompt(tok, question: str, paragraphs: Sequence[str],
 
 @torch.inference_mode()
 def generate_batch(model, tok, prompts: Sequence[str],
-                   max_new_tokens: int = 32) -> List[str]:
+                   max_new_tokens: int = 32,
+                   kv: Optional[dict] = None) -> List[str]:
     """Greedy-decode a batch of prompts -> list of answer strings.
 
     With padding_side="left" every sequence in the batch shares one padded
     input length, so slicing at that length strips the prompt from all rows
     at once. With right padding this slice would be wrong for every row that
     got padded, and the bug is silent: you get plausible-looking garbage.
+
+    `kv` is a knob-3 spec: plain serializable params, e.g. {"bits": 4} or
+    {"bits": 2, "backend": "quanto"}. None or {"bits": 16} leaves this
+    byte-identical to the Phase 1 path. The mutable cache_config is rebuilt
+    HERE, per batch, because generate() pops "backend" out of whatever dict
+    it is handed — a reused dict silently reverts to the quanto backend after
+    the first batch.
     """
+    from src.generator import kv_cache as KV
+
+    spec = dict(kv or {})
+    allow_flush = spec.pop("allow_flush", False)
+    residual_length = spec.get("residual_length", KV.RESIDUAL_LENGTH)
+    if spec.get("bits", KV.FP16_BITS) != KV.FP16_BITS \
+            and residual_length <= max_new_tokens and not allow_flush:
+        raise ValueError(
+            f"residual_length={residual_length} <= max_new_tokens="
+            f"{max_new_tokens}: the fp16 buffer would flush mid-generation, "
+            f"re-quantizing the whole store from already-lossy values. The "
+            f"pre-registered headline setting is residual_length=512. Pass "
+            f"allow_flush=True to run this deliberately.")
+
+    cache_kwargs = KV.make_cache(**spec)
+
     enc = tok(list(prompts), return_tensors="pt", padding=True).to(model.device)
     out = model.generate(
         **enc,
+        **cache_kwargs,
         max_new_tokens=max_new_tokens,
         do_sample=False,
         pad_token_id=tok.pad_token_id,
