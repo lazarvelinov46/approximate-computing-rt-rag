@@ -110,6 +110,7 @@ def run_pipeline(
     batch_size: Optional[int] = None,
     max_new_tokens: Optional[int] = None,
     setting: str = "baseline",
+    kv: Optional[Dict[str, Any]] = None,
     out_csv: Optional[str] = None,
     resume: bool = True,
     progress: bool = True,
@@ -121,13 +122,31 @@ def run_pipeline(
 
     `setting` tags every row so Phase 2 can append many knob settings to one
     file and still tell them apart. `mode` selects the generation regime.
+
+    `kv` is a KNOB 3 spec, e.g. {"bits": 4} or {"bits": 2, "backend": "quanto"}.
+    None leaves the fp16 DynamicCache path untouched, so a run with kv=None is
+    byte-identical to Phase 1. The spec is plain serializable params, not a
+    cache object: generate() mutates the config dict it receives, so the
+    mutable form is rebuilt per batch inside generate_batch.
     """
     from src.retriever import embed as E
     from src.generator import model as G
+    from src.generator import kv_cache as KV
 
     top_k = top_k if top_k is not None else cfg["retrieval"]["top_k"]
     batch_size = batch_size or cfg["generation"]["batch_size"]
     system, max_new_tokens = _mode_settings(mode, cfg, max_new_tokens)
+
+    # Fail before generating rather than after. Writing quantized rows under
+    # the "baseline" tag would contaminate the frozen Phase-1 reference, and
+    # the damage is only visible once the McNemar comes back wrong.
+    kv_label = KV.label(**{k: v for k, v in (kv or {}).items()
+                           if k != "allow_flush"}) if kv else "kv_fp16"
+    if kv_label != "kv_fp16" and setting in ("baseline", "baseline_explain"):
+        raise ValueError(
+            f"setting={setting!r} is a frozen Phase-1 tag but kv={kv} requests "
+            f"quantization. Tag quantized runs with their own setting name "
+            f"(e.g. {kv_label!r}).")
 
     if embedder is None:
         embedder = E.load_embedder(cfg["models"]["embedder"])
@@ -145,7 +164,7 @@ def run_pipeline(
     if progress:
         print(f"retrieved + prompted {len(examples)} questions "
               f"in {time.time() - t0:.1f}s  [mode={mode}, "
-              f"max_new_tokens={max_new_tokens}]")
+              f"max_new_tokens={max_new_tokens}, kv={kv_label}]")
 
     # Chunk the FULL order first, then skip complete batches. Filtering
     # examples before chunking would re-partition the survivors and change
@@ -165,7 +184,8 @@ def run_pipeline(
             if done and all(examples[i].qid in done for i in idxs):
                 continue
             raw = G.generate_batch(generator, gen_tok,
-                                   [prompts[i] for i in idxs], max_new_tokens)
+                                   [prompts[i] for i in idxs], max_new_tokens,
+                                   kv=kv)
 
             # In explain mode the prediction is an EXTRACTION from a longer
             # text. Keep the raw generation so a parse failure stays
@@ -209,7 +229,6 @@ def run_pipeline(
     if progress:
         print(f"generated {len(rows)} answers in {time.time() - t0:.1f}s")
     return rows
-
 
 def load_results(path: str, setting: Optional[str] = None,
                  mode: Optional[str] = None):
