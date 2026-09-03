@@ -52,7 +52,13 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 # --- frozen study constants ---------------------------------------------
-Q_GROUP_SIZE = 64
+# Largest group size that guarantees per-channel grouping at batch 16 with
+# 2 KV heads: alignment needs gcd(4096*S/G, 128) == 128, which holds for any
+# padded length S when G <= 32. Group 64 aligns only for even S — measured at
+# 38.1% of short-mode batches and 60.3% of explain-mode batches, and that
+# difference would confound the pre-registered short-vs-explain contrast.
+# Costs 1.0 metadata bits per element instead of 0.5.
+Q_GROUP_SIZE = 32
 RESIDUAL_LENGTH = 512
 DEFAULT_BACKEND = "hqq"
 
@@ -281,9 +287,9 @@ def selftest() -> None:
         else:
             raise AssertionError("expected ValueError")
 
-    assert effective_bits(4, 64) == 4.5
-    assert effective_bits(2, 64) == 2.5
-    assert effective_bits(3, 64) == 4.0
+    assert effective_bits(4, 32) == 5.0
+    assert effective_bits(2, 32) == 3.0
+    assert effective_bits(3, 32) == 5.0
     assert effective_bits(16) == 16.0
 
     assert channels_per_group(16, 744, 64) == 1
@@ -292,5 +298,5 @@ def selftest() -> None:
     assert channels_per_group(16, 745, 32) == 1
 
     assert label(16) == "kv_fp16"
-    assert label(4) == "kv_hqq_n4_g64_r512"
+    assert label(4) == "kv_hqq_n4_g32_r512"
     print("kv_cache selftest OK")
