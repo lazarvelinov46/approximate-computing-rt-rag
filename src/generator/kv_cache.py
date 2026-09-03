@@ -64,9 +64,14 @@ PER_CHANNEL_AXIS = {"quanto": -1, "hqq": 0}
 # hqq nbits=3 raises inside the packer at axis 1, every group size.
 BACKEND_AXIS_EXCEPTIONS = {("hqq", 3): (0,)}
 
+# Verified to follow nbits + 32/G exactly at groups 16..256 (audit cell 12).
+_FORMULA_VERIFIED_NBITS = (8, 4, 2)
+
 # 3-bit uses 3bit_32 packing whose payload varies with the reshape, so it does
-# NOT follow nbits + 32/G. These are measured (audit cell 12, seed 42).
-_EFF_BITS_3BIT = {16: 6.00, 32: 5.00, 64: 4.00, 128: 3.50, 256: 3.38}
+# NOT follow the formula. Measured, seed 42.
+_EFF_BITS_MEASURED = {
+    (3, 16): 6.00, (3, 32): 5.00, (3, 64): 4.00, (3, 128): 3.50, (3, 256): 3.38,
+}
 
 FP16_BITS = 16
 
@@ -143,17 +148,23 @@ def make_cache(bits: int = FP16_BITS,
 def effective_bits(bits: int, q_group_size: int = Q_GROUP_SIZE) -> float:
     """Measured storage cost per element, including scale/zero metadata.
 
-    This, not the nominal nbits, is the compression axis for the Pareto plot.
+    This, not the nominal nbits, is the compression axis for the Pareto plot,
+    so it refuses to extrapolate. nbits 3 already proved the formula is not
+    universal: its packed payload runs 4.00, 4.00, 3.50, 3.25, 3.26 bits
+    across groups 16..256 instead of a flat 3.
     """
     if bits == FP16_BITS:
         return float(FP16_BITS)
-    if bits == 3:
-        if q_group_size not in _EFF_BITS_3BIT:
-            raise ValueError(
-                f"3-bit effective bits at group {q_group_size} were never "
-                f"measured; audit covers {sorted(_EFF_BITS_3BIT)}")
-        return _EFF_BITS_3BIT[q_group_size]
-    return bits + 32.0 / q_group_size
+    if (bits, q_group_size) in _EFF_BITS_MEASURED:
+        return _EFF_BITS_MEASURED[(bits, q_group_size)]
+    if bits in _FORMULA_VERIFIED_NBITS:
+        return bits + 32.0 / q_group_size
+    raise NotImplementedError(
+        f"effective bits for nbits={bits} at group {q_group_size} were never "
+        f"measured. The formula nbits + 32/G is verified only for nbits "
+        f"{list(_FORMULA_VERIFIED_NBITS)}; nbits=3 violates it. Measure with "
+        f"notebooks/10_ac_knob3_kv_cache CELL 2 and add the result to "
+        f"_EFF_BITS_MEASURED before using this setting.")
 
 
 def channels_per_group(batch: int, seq_len: int, q_group_size: int,
