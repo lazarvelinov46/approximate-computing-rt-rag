@@ -64,8 +64,9 @@ PER_CHANNEL_AXIS = {"quanto": -1, "hqq": 0}
 # hqq nbits=3 raises inside the packer at axis 1, every group size.
 BACKEND_AXIS_EXCEPTIONS = {("hqq", 3): (0,)}
 
-# Verified to follow nbits + 32/G exactly at groups 16..256 (audit cell 12).
-_FORMULA_VERIFIED_NBITS = (8, 4, 2)
+# Verified to follow nbits + 32/G exactly at groups 16..256
+# (audit cell 12 for 8/4/2; notebook 10 cell 3 for 1, with 8 as control).
+_FORMULA_VERIFIED_NBITS = (8, 4, 2, 1)
 
 # 3-bit uses 3bit_32 packing whose payload varies with the reshape, so it does
 # NOT follow the formula. Measured, seed 42.
