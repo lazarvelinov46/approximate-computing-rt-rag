@@ -182,6 +182,41 @@ def channels_per_group(batch: int, seq_len: int, q_group_size: int,
         raise ValueError("tensor is not divisible by q_group_size")
     return head_dim // gcd(numel // q_group_size, head_dim)
 
+def batch_alignment(plens, batch_size: int,
+                    q_group_size: int = Q_GROUP_SIZE,
+                    num_kv_heads: int = 2, head_dim: int = 128):
+    """Per-batch channel alignment for a run, from prompt token counts.
+
+    Padded length is max(plens) within each fixed chunk of loader order, which
+    is exactly what the tokenizer pads to and what the cache sees at prefill.
+    Pure function of the prompts and the batching, so this needs no GPU and
+    can be run before or after a sweep.
+
+    -> (per_batch, summary) where per_batch is a list of
+       (batch_index, batch_size, padded_len, channels_per_group).
+    """
+    chunks = [list(range(i, min(i + batch_size, len(plens))))
+              for i in range(0, len(plens), batch_size)]
+    per_batch = []
+    for bi, idxs in enumerate(chunks):
+        padded = max(plens[i] for i in idxs)
+        cpg = channels_per_group(len(idxs), padded, q_group_size,
+                                 num_kv_heads, head_dim)
+        per_batch.append((bi, len(idxs), padded, cpg))
+
+    counts: Dict[int, int] = {}
+    for _, _, _, cpg in per_batch:
+        counts[cpg] = counts.get(cpg, 0) + 1
+    n = len(per_batch)
+    summary = {
+        "n_batches": n,
+        "q_group_size": q_group_size,
+        "batches_by_channels_per_group": dict(sorted(counts.items())),
+        "frac_true_per_channel": round(counts.get(1, 0) / n, 4) if n else None,
+        "mean_channels_per_group": round(
+            sum(c for _, _, _, c in per_batch) / n, 4) if n else None,
+    }
+    return per_batch, summary
 
 def label(bits: int = FP16_BITS, backend: str = DEFAULT_BACKEND,
           q_group_size: int = Q_GROUP_SIZE,
