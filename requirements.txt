@@ -1,6 +1,8 @@
 # Core (mostly preinstalled on Kaggle)
 torch
-transformers>=4.44
+transformers==5.0.0
+optimum-quanto>=0.2.5
+hqq
 accelerate
 datasets
 numpy
