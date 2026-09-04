@@ -453,7 +453,7 @@ residual_length 512, transformers 5.0.0. Retrieval untouched:
 complete_frac and recall@5 constant across every setting.
 
 **Frontier (short / explain, relative EM cost):**
-- 8-bit @ G32 — 8.50 eff bits, 1.78x — 0.0% / not run. Zero discordant
+- 8-bit @ G32 — 9.00 eff bits, 1.78x — 0.0% / not run. Zero discordant
   pairs against fp16: bit-for-bit invisible.
 - 4-bit @ G32 — 5.00 eff bits, 3.20x — -1.5% / -1.9%. Explain McNemar
   b=67 c=75, 142 discordant, p=0.557: an ADEQUATELY POWERED null, the
