@@ -37,6 +37,10 @@ results/*
 !results/knob3_explain_results.csv
 !results/knob3_explain_summary.json
 !results/knob3_explain_summary.csv
+!results/knob3_findings.md
+!results/knob3_fragility.json
+!results/knob3_combined_summary.csv
+!results/figures
 figures/*
 !figures/.gitkeep
 /data/

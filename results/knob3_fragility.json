@@ -1,0 +1,148 @@
+{
+  "short": {
+    "pool_name": "SHORT",
+    "pool_size": 391,
+    "broken": {
+      "kv_hqq_n4_g32_r512": 11,
+      "kv_hqq_n3_g16_r512": 6,
+      "kv_hqq_n3_g32_r512": 64,
+      "kv_hqq_n2_g16_r512": 33,
+      "kv_hqq_n2_g32_r512": 347
+    },
+    "pairs": [
+      {
+        "a": "kv_hqq_n4_g32_r512",
+        "b": "kv_hqq_n3_g16_r512",
+        "both": 3,
+        "expected_if_random": 0.17,
+        "ratio": 17.77
+      },
+      {
+        "a": "kv_hqq_n4_g32_r512",
+        "b": "kv_hqq_n3_g32_r512",
+        "both": 6,
+        "expected_if_random": 1.8,
+        "ratio": 3.33
+      },
+      {
+        "a": "kv_hqq_n4_g32_r512",
+        "b": "kv_hqq_n2_g16_r512",
+        "both": 4,
+        "expected_if_random": 0.93,
+        "ratio": 4.31
+      },
+      {
+        "a": "kv_hqq_n4_g32_r512",
+        "b": "kv_hqq_n2_g32_r512",
+        "both": 11,
+        "expected_if_random": 9.76,
+        "ratio": 1.13
+      },
+      {
+        "a": "kv_hqq_n3_g16_r512",
+        "b": "kv_hqq_n3_g32_r512",
+        "both": 3,
+        "expected_if_random": 0.98,
+        "ratio": 3.05
+      },
+      {
+        "a": "kv_hqq_n3_g16_r512",
+        "b": "kv_hqq_n2_g16_r512",
+        "both": 3,
+        "expected_if_random": 0.51,
+        "ratio": 5.92
+      },
+      {
+        "a": "kv_hqq_n3_g16_r512",
+        "b": "kv_hqq_n2_g32_r512",
+        "both": 6,
+        "expected_if_random": 5.32,
+        "ratio": 1.13
+      },
+      {
+        "a": "kv_hqq_n3_g32_r512",
+        "b": "kv_hqq_n2_g16_r512",
+        "both": 13,
+        "expected_if_random": 5.4,
+        "ratio": 2.41
+      },
+      {
+        "a": "kv_hqq_n3_g32_r512",
+        "b": "kv_hqq_n2_g32_r512",
+        "both": 62,
+        "expected_if_random": 56.8,
+        "ratio": 1.09
+      },
+      {
+        "a": "kv_hqq_n2_g16_r512",
+        "b": "kv_hqq_n2_g32_r512",
+        "both": 32,
+        "expected_if_random": 29.29,
+        "ratio": 1.09
+      }
+    ]
+  },
+  "explain": {
+    "pool_name": "EXPLAIN",
+    "pool_size": 424,
+    "broken": {
+      "kv_hqq_n4_g32_r512": 75,
+      "kv_hqq_n2_g16_r512": 151,
+      "kv_hqq_n2_g32_r512": 424
+    },
+    "pairs": [
+      {
+        "a": "kv_hqq_n4_g32_r512",
+        "b": "kv_hqq_n2_g16_r512",
+        "both": 42,
+        "expected_if_random": 26.71,
+        "ratio": 1.57
+      }
+    ]
+  },
+  "correlates_short": {
+    "n_fragile": 72,
+    "n_robust": 319,
+    "yes_no": [
+      0.0,
+      0.1317,
+      0.0002
+    ],
+    "bridge": [
+      0.8472,
+      0.7179,
+      0.0251
+    ],
+    "gold_words": [
+      2.569,
+      1.821,
+      0.0
+    ]
+  },
+  "correlates_explain": {
+    "n_fragile": 75,
+    "n_robust": 349,
+    "yes_no": [
+      0.0933,
+      0.1003,
+      1.0
+    ],
+    "bridge": [
+      0.68,
+      0.808,
+      0.0195
+    ],
+    "gold_words": [
+      2.307,
+      1.989,
+      0.101285
+    ]
+  },
+  "cross_mode_transfer": {
+    "n": 304,
+    "fragile_break_rate": 0.2222,
+    "robust_break_rate": 0.128,
+    "p": 0.0879
+  },
+  "note": "an earlier version of the transfer test pooled on questions the 4-bit explain run answered correctly, which excludes the questions 4-bit broke and forces a null; both pools are now anchored on their own fp16 baseline"
+}
