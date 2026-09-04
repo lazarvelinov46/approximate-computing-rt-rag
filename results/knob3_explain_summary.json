@@ -1,0 +1,159 @@
+{
+  "knob": 3,
+  "name": "KV cache precision",
+  "regime": 1,
+  "mode": "explain",
+  "n": 1000,
+  "backend": "hqq",
+  "transformers": "5.0.0",
+  "max_new_tokens": 256,
+  "frozen_constants": {
+    "q_group_size": 32,
+    "residual_length": 512,
+    "axis_per_channel": {
+      "quanto": -1,
+      "hqq": 0
+    },
+    "batch_size": 16
+  },
+  "amendments": [
+    "8-bit dropped from the explain arm: zero discordant pairs in the short arm, so it cannot produce information here",
+    "3-bit @ G32 dropped: Pareto-dominated by 4-bit at identical 5.00 effective bits (EM 0.339 vs 0.385 in short mode)",
+    "2-bit @ G16 added: the 4.00-effective-bit Pareto point, which the original 8/4/2 ladder could not reach",
+    "residual_length=0 variant excluded on a measured overhead of 8.00x vs fp16"
+  ],
+  "explain_overhead_vs_fp16": {
+    "kv_hqq_n4_g32_r512": 1.319,
+    "kv_hqq_n4_g32_r0": 7.999
+  },
+  "mcnemar": {
+    "fp16ex_vs_kv_hqq_n4_g32_r512": {
+      "b": 67,
+      "c": 75,
+      "discordant": 142,
+      "p": 0.5571,
+      "verdict": "null, adequately powered"
+    },
+    "fp16ex_vs_kv_hqq_n2_g16_r512": {
+      "b": 61,
+      "c": 151,
+      "discordant": 212,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "fp16ex_vs_kv_hqq_n2_g32_r512": {
+      "b": 0,
+      "c": 424,
+      "discordant": 424,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "amplify_kv_hqq_n4_g32_r512": {
+      "pool": 304,
+      "explain_only_broken": 41,
+      "short_only_broken": 6,
+      "discordant": 47,
+      "p": 0.0
+    },
+    "amplify_kv_hqq_n2_g16_r512": {
+      "pool": 304,
+      "explain_only_broken": 84,
+      "short_only_broken": 13,
+      "discordant": 97,
+      "p": 0.0
+    },
+    "amplify_kv_hqq_n2_g32_r512": {
+      "pool": 304,
+      "explain_only_broken": 35,
+      "short_only_broken": 0,
+      "discordant": 35,
+      "p": 0.0
+    }
+  },
+  "settings": [
+    {
+      "setting": "kv_fp16",
+      "nbits": 16,
+      "q_group_size": NaN,
+      "residual_length": NaN,
+      "effective_bits": 16.0,
+      "compression": 1.0,
+      "rmse_proxy": 0.0,
+      "identity_vs_fp16": 1.0,
+      "em": 0.424,
+      "f1": 0.5594,
+      "complete_frac": 0.838,
+      "em_complete": 0.4845,
+      "em_incomplete": 0.1111,
+      "abstain_rate": 0.008,
+      "parse_fail_rate": 0.006,
+      "decode_p50": 92,
+      "decode_p90": 144,
+      "decode_max": 256,
+      "decode_at_cap": 0.005
+    },
+    {
+      "setting": "kv_hqq_n4_g32_r512",
+      "nbits": 4,
+      "q_group_size": 32.0,
+      "residual_length": 512.0,
+      "effective_bits": 5.0,
+      "compression": 3.2,
+      "rmse_proxy": 0.27915,
+      "identity_vs_fp16": 0.61,
+      "em": 0.416,
+      "f1": 0.5418,
+      "complete_frac": 0.838,
+      "em_complete": 0.4737,
+      "em_incomplete": 0.1173,
+      "abstain_rate": 0.001,
+      "parse_fail_rate": 0.003,
+      "decode_p50": 88,
+      "decode_p90": 140,
+      "decode_max": 256,
+      "decode_at_cap": 0.001
+    },
+    {
+      "setting": "kv_hqq_n2_g16_r512",
+      "nbits": 2,
+      "q_group_size": 16.0,
+      "residual_length": 512.0,
+      "effective_bits": 4.0,
+      "compression": 4.0,
+      "rmse_proxy": 1.18184,
+      "identity_vs_fp16": 0.451,
+      "em": 0.334,
+      "f1": 0.4593,
+      "complete_frac": 0.838,
+      "em_complete": 0.3759,
+      "em_incomplete": 0.1173,
+      "abstain_rate": 0.003,
+      "parse_fail_rate": 0.017,
+      "decode_p50": 84,
+      "decode_p90": 146,
+      "decode_max": 256,
+      "decode_at_cap": 0.009
+    },
+    {
+      "setting": "kv_hqq_n2_g32_r512",
+      "nbits": 2,
+      "q_group_size": 32.0,
+      "residual_length": 512.0,
+      "effective_bits": 3.0,
+      "compression": 5.333,
+      "rmse_proxy": 1.44083,
+      "identity_vs_fp16": 0.001,
+      "em": 0.0,
+      "f1": 0.0106,
+      "complete_frac": 0.838,
+      "em_complete": 0.0,
+      "em_incomplete": 0.0,
+      "abstain_rate": 0.0,
+      "parse_fail_rate": 0.95,
+      "decode_p50": 255,
+      "decode_p90": 256,
+      "decode_max": 259,
+      "decode_at_cap": 0.42
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+setting,nbits,q_group_size,residual_length,effective_bits,compression,rmse_proxy,identity_vs_fp16,em,f1,complete_frac,em_complete,em_incomplete,abstain_rate,parse_fail_rate,decode_p50,decode_p90,decode_max,decode_at_cap
+kv_fp16,16,,,16.0,1.0,0.0,1.0,0.424,0.5594,0.838,0.4845,0.1111,0.008,0.006,92,144,256,0.005
+kv_hqq_n4_g32_r512,4,32.0,512.0,5.0,3.2,0.27915,0.61,0.416,0.5418,0.838,0.4737,0.1173,0.001,0.003,88,140,256,0.001
+kv_hqq_n2_g16_r512,2,16.0,512.0,4.0,4.0,1.18184,0.451,0.334,0.4593,0.838,0.3759,0.1173,0.003,0.017,84,146,256,0.009
+kv_hqq_n2_g32_r512,2,32.0,512.0,3.0,5.333,1.44083,0.001,0.0,0.0106,0.838,0.0,0.0,0.0,0.95,255,256,259,0.42

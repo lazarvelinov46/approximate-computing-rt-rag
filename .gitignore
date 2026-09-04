@@ -34,6 +34,9 @@ results/*
 !results/knob3_short_results.csv
 !results/knob3_summary.json
 !results/knob3_summary.csv
+!results/knob3_explain_results.csv
+!results/knob3_explain_summary.json
+!results/knob3_explain_summary.csv
 figures/*
 !figures/.gitkeep
 /data/
