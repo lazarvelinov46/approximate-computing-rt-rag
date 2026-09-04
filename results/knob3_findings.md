@@ -59,3 +59,10 @@ at 4-bit. residual_length=0 costs 8.00x in explain and was not run.
 hqq vs quanto agree within 4% on reconstruction error at matched nbits
 and matched footprint, which is weaker than the EM-level replications in
 knobs 1 and 2.
+
+
+In explain mode the bridge correlate REVERSES: fragile questions are 68.0%
+bridge vs 80.8% robust (p=0.0195), against 84.7% vs 71.8% in short mode. A
+sign flip on a significant effect, not merely a null — comparison questions
+survive span extraction from a perturbed cache but not a 90-step reasoning
+chain over one.
