@@ -148,6 +148,16 @@ def run_pipeline(
             f"quantization. Tag quantized runs with their own setting name "
             f"(e.g. {kv_label!r}).")
 
+    # Same reasoning as the kv guard above, for KNOB 5. `top_k` is the only
+    # other parameter that changes what a row means without changing the
+    # schema, so a mistyped setting would append knob-5 rows into the frozen
+    # Phase-1 file and _writer's header check would pass.
+    if top_k != cfg["retrieval"]["top_k"] and setting in ("baseline", "baseline_explain"):
+        raise ValueError(
+            f"setting={setting!r} is a frozen Phase-1 tag but top_k={top_k} "
+            f"differs from the baseline {cfg['retrieval']['top_k']}. Tag knob-5 "
+            f"runs with their own setting name (e.g. 'topk_{top_k:02d}').")
+
     if embedder is None:
         embedder = E.load_embedder(cfg["models"]["embedder"])
     if generator is None or gen_tok is None:
