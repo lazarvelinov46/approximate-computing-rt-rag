@@ -40,6 +40,10 @@ results/*
 !results/knob3_findings.md
 !results/knob3_fragility.json
 !results/knob3_combined_summary.csv
+!results/knob5_smoke.csv
+!results/knob5_results.csv
+!results/knob5_summary.json
+!results/knob5_summary.csv
 !results/figures
 figures/*
 !figures/.gitkeep

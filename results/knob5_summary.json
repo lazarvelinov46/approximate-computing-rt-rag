@@ -1,0 +1,128 @@
+{
+  "knob": 5,
+  "name": "top-k",
+  "regime": 1,
+  "mode": "short",
+  "n": 1000,
+  "run_plan": [
+    2,
+    3,
+    7,
+    10
+  ],
+  "projection_conditionals": {
+    "em_complete": 0.4415,
+    "em_incomplete": 0.1296
+  },
+  "mcnemar_vs_k5": [
+    {
+      "a": 5,
+      "b_setting": 2,
+      "b": 81,
+      "c": 106,
+      "discordant": 187,
+      "p": 0.079
+    },
+    {
+      "a": 5,
+      "b_setting": 3,
+      "b": 58,
+      "c": 70,
+      "discordant": 128,
+      "p": 0.3309
+    },
+    {
+      "a": 5,
+      "b_setting": 7,
+      "b": 50,
+      "c": 40,
+      "discordant": 90,
+      "p": 0.3428
+    },
+    {
+      "a": 5,
+      "b_setting": 10,
+      "b": 83,
+      "c": 46,
+      "discordant": 129,
+      "p": 0.0014
+    }
+  ],
+  "settings": [
+    {
+      "k": 2,
+      "recall@k": 0.74,
+      "complete_frac": 0.519,
+      "em": 0.366,
+      "f1": 0.4691,
+      "em_projected": 0.2915,
+      "em_complete": 0.5453,
+      "em_incomplete": 0.1726,
+      "em_bridge": 0.3205,
+      "em_comparison": 0.5573,
+      "abstain_rate": 0.029,
+      "prompt_tokens_mean": 334.7,
+      "em_residual": 0.0745
+    },
+    {
+      "k": 3,
+      "recall@k": 0.831,
+      "complete_frac": 0.683,
+      "em": 0.379,
+      "f1": 0.4873,
+      "em_projected": 0.3426,
+      "em_complete": 0.4773,
+      "em_incomplete": 0.1672,
+      "em_bridge": 0.3441,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.02,
+      "prompt_tokens_mean": 468.9,
+      "em_residual": 0.0364
+    },
+    {
+      "k": 5,
+      "recall@k": 0.916,
+      "complete_frac": 0.838,
+      "em": 0.391,
+      "f1": 0.5067,
+      "em_projected": 0.391,
+      "em_complete": 0.4415,
+      "em_incomplete": 0.1296,
+      "em_bridge": 0.3589,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.01,
+      "prompt_tokens_mean": 744.0,
+      "em_residual": 0.0
+    },
+    {
+      "k": 7,
+      "recall@k": 0.953,
+      "complete_frac": 0.907,
+      "em": 0.401,
+      "f1": 0.5181,
+      "em_projected": 0.4125,
+      "em_complete": 0.4212,
+      "em_incomplete": 0.2043,
+      "em_bridge": 0.3725,
+      "em_comparison": 0.5208,
+      "abstain_rate": 0.008,
+      "prompt_tokens_mean": 1034.9,
+      "em_residual": -0.0115
+    },
+    {
+      "k": 10,
+      "recall@k": 1.0,
+      "complete_frac": 1.0,
+      "em": 0.428,
+      "f1": 0.5448,
+      "em_projected": 0.4415,
+      "em_complete": 0.428,
+      "em_incomplete": NaN,
+      "em_bridge": 0.3973,
+      "em_comparison": 0.5573,
+      "abstain_rate": 0.005,
+      "prompt_tokens_mean": 1519.0,
+      "em_residual": -0.0135
+    }
+  ]
+}
