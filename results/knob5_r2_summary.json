@@ -1,0 +1,188 @@
+{
+  "knob": 5,
+  "regime": 2,
+  "mode": "short",
+  "n": 1000,
+  "run_plan": [
+    {
+      "setting": "r2_topk_02",
+      "k": 2,
+      "batch": 16
+    },
+    {
+      "setting": "r2_topk_03",
+      "k": 3,
+      "batch": 16
+    },
+    {
+      "setting": "r2_topk_10",
+      "k": 10,
+      "batch": 16
+    },
+    {
+      "setting": "r2_topk_05_b8",
+      "k": 5,
+      "batch": 8
+    },
+    {
+      "setting": "r2_topk_20_b8",
+      "k": 20,
+      "batch": 8
+    }
+  ],
+  "batch_amendment": {
+    "reason": "k=20 OOMs at the frozen batch_size=16 (4945-token worst prompt, 14.56 GiB T4). Ladder: 12 OOM, 8 OK at 12.62 GiB. Decided on a memory measurement before any k=20 EM existed.",
+    "batch_for_k20": 8,
+    "control": "r2_topk_05_b8"
+  },
+  "projection_conditionals": {
+    "em_complete": 0.4503,
+    "em_incomplete": 0.1124
+  },
+  "mcnemar_batch16_vs_k5": [
+    {
+      "a": "regime2_a1_baseline",
+      "b_setting": "r2_topk_02",
+      "b": 69,
+      "c": 70,
+      "discordant": 139,
+      "p": 1.0
+    },
+    {
+      "a": "regime2_a1_baseline",
+      "b_setting": "r2_topk_03",
+      "b": 48,
+      "c": 48,
+      "discordant": 96,
+      "p": 1.0
+    },
+    {
+      "a": "regime2_a1_baseline",
+      "b_setting": "r2_topk_10",
+      "b": 72,
+      "c": 46,
+      "discordant": 118,
+      "p": 0.021
+    }
+  ],
+  "mcnemar_batch_control": {
+    "a": "regime2_a1_baseline",
+    "b_setting": "r2_topk_05_b8",
+    "b": 0,
+    "c": 0,
+    "discordant": 0,
+    "p": 1.0
+  },
+  "mcnemar_k20_vs_matched_k5": {
+    "a": "r2_topk_05_b8",
+    "b_setting": "r2_topk_20_b8",
+    "b": 76,
+    "c": 69,
+    "discordant": 145,
+    "p": 0.6184
+  },
+  "settings": [
+    {
+      "setting": "r2_topk_02",
+      "k": 2,
+      "batch": 16,
+      "recall@k": 0.6495,
+      "complete_frac": 0.38,
+      "em": 0.305,
+      "f1": 0.3867,
+      "em_projected": 0.2408,
+      "em_complete": 0.5474,
+      "em_incomplete": 0.1565,
+      "em_bridge": 0.2488,
+      "em_comparison": 0.5417,
+      "abstain_rate": 0.041,
+      "prompt_tokens_mean": 337.3,
+      "em_residual": 0.0642
+    },
+    {
+      "setting": "r2_topk_03",
+      "k": 3,
+      "batch": 16,
+      "recall@k": 0.715,
+      "complete_frac": 0.485,
+      "em": 0.306,
+      "f1": 0.4014,
+      "em_projected": 0.2763,
+      "em_complete": 0.4763,
+      "em_incomplete": 0.1456,
+      "em_bridge": 0.2587,
+      "em_comparison": 0.5052,
+      "abstain_rate": 0.03,
+      "prompt_tokens_mean": 474.9,
+      "em_residual": 0.0297
+    },
+    {
+      "setting": "regime2_a1_baseline",
+      "k": 5,
+      "batch": 16,
+      "recall@k": 0.768,
+      "complete_frac": 0.573,
+      "em": 0.306,
+      "f1": 0.4037,
+      "em_projected": 0.306,
+      "em_complete": 0.4503,
+      "em_incomplete": 0.1124,
+      "em_bridge": 0.2537,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.014,
+      "prompt_tokens_mean": 761.1,
+      "em_residual": 0.0
+    },
+    {
+      "setting": "r2_topk_10",
+      "k": 10,
+      "batch": 16,
+      "recall@k": 0.825,
+      "complete_frac": 0.673,
+      "em": 0.332,
+      "f1": 0.43,
+      "em_projected": 0.3398,
+      "em_complete": 0.4339,
+      "em_incomplete": 0.1223,
+      "em_bridge": 0.2834,
+      "em_comparison": 0.5365,
+      "abstain_rate": 0.015,
+      "prompt_tokens_mean": 1494.1,
+      "em_residual": -0.0078
+    },
+    {
+      "setting": "r2_topk_05_b8",
+      "k": 5,
+      "batch": 8,
+      "recall@k": 0.768,
+      "complete_frac": 0.573,
+      "em": 0.306,
+      "f1": 0.4042,
+      "em_projected": 0.306,
+      "em_complete": 0.4503,
+      "em_incomplete": 0.1124,
+      "em_bridge": 0.2537,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.014,
+      "prompt_tokens_mean": 761.1,
+      "em_residual": 0.0
+    },
+    {
+      "setting": "r2_topk_20_b8",
+      "k": 20,
+      "batch": 8,
+      "recall@k": 0.8675,
+      "complete_frac": 0.743,
+      "em": 0.313,
+      "f1": 0.4127,
+      "em_projected": 0.3635,
+      "em_complete": 0.3876,
+      "em_incomplete": 0.0973,
+      "em_bridge": 0.2611,
+      "em_comparison": 0.5312,
+      "abstain_rate": 0.013,
+      "prompt_tokens_mean": 2997.7,
+      "em_residual": -0.0505
+    }
+  ]
+}
