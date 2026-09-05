@@ -131,11 +131,11 @@ def run_pipeline_pooled(
     sha = corpus.manifest["sha256"]
 
     if top_k != cfg["retrieval"]["top_k"] and setting in (
-        "regime2_a1_baseline", "regime2_a1_baseline_explain"):
-    raise ValueError(
-        f"setting={setting!r} is a frozen regime-2 tag but top_k={top_k} "
-        f"differs from the baseline {cfg['retrieval']['top_k']}. Tag knob-5 "
-        f"runs with their own setting name (e.g. 'r2_topk_{top_k:02d}').")
+            "regime2_a1_baseline", "regime2_a1_baseline_explain"):
+        raise ValueError(
+            f"setting={setting!r} is a frozen regime-2 tag but top_k={top_k} "
+            f"differs from the baseline {cfg['retrieval']['top_k']}. Tag knob-5 "
+            f"runs with their own setting name (e.g. 'r2_topk_{top_k:02d}').")
 
     if embedder is None:
         embedder = E.load_embedder(cfg["models"]["embedder"])
