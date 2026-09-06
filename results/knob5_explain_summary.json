@@ -1,0 +1,63 @@
+{
+  "knob": 5,
+  "regime": 1,
+  "mode": "explain-vs-short",
+  "n": 1000,
+  "run_plan": [
+    2,
+    10
+  ],
+  "tests": [
+    {
+      "k": 2,
+      "complete_frac": 0.519,
+      "em_short": 0.366,
+      "em_explain": 0.355,
+      "advantage": -0.011,
+      "b_explain_wins": 74,
+      "c_short_wins": 85,
+      "discordant": 159,
+      "p": 0.4278,
+      "verdict": "powered null",
+      "parsed_ok": 0.993,
+      "em_bridge_short": 0.3205,
+      "em_bridge_explain": 0.3416,
+      "em_comparison_short": 0.5573,
+      "em_comparison_explain": 0.4115
+    },
+    {
+      "k": 5,
+      "complete_frac": 0.838,
+      "em_short": 0.391,
+      "em_explain": 0.424,
+      "advantage": 0.033,
+      "b_explain_wins": 120,
+      "c_short_wins": 87,
+      "discordant": 207,
+      "p": 0.0259,
+      "verdict": "SIGNIFICANT",
+      "parsed_ok": 0.994,
+      "em_bridge_short": 0.3589,
+      "em_bridge_explain": 0.4121,
+      "em_comparison_short": 0.526,
+      "em_comparison_explain": 0.474
+    },
+    {
+      "k": 10,
+      "complete_frac": 1.0,
+      "em_short": 0.428,
+      "em_explain": 0.466,
+      "advantage": 0.038,
+      "b_explain_wins": 136,
+      "c_short_wins": 98,
+      "discordant": 234,
+      "p": 0.0154,
+      "verdict": "SIGNIFICANT",
+      "parsed_ok": 0.995,
+      "em_bridge_short": 0.3973,
+      "em_bridge_explain": 0.4691,
+      "em_comparison_short": 0.5573,
+      "em_comparison_explain": 0.4531
+    }
+  ]
+}

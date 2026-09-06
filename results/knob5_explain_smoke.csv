@@ -1,0 +1,114 @@
+setting,mode,qid,level,qtype,question,gold_answer,gold_ids,retrieved_ids,prediction,raw_generation,parsed_ok,prompt_tokens,decode_tokens,n_paragraphs
+smoke_topk_02_explain,explain,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6,Dwarka,"[1] states that Iqbal F. Qadir was a Vice-Admiral in the Pakistan Navy at the time of the attack on the radar station in Dwarka, India. [2] provides information about radar station B-71, but does not mention its location or any connection to Dwarka, India.
+Connecting the useful passages:
+While [1] confirms Qadir's naval rank during the attack, [2] offers details about radar stations built during World War II, but does not specify their locations or involvement in the Indian conflict.
+Answer: Dwarka",1,428,120,10
+smoke_topk_02_explain,explain,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1,15 August 1843,"[1] states that Tivolis Koncertsal is located at Tivoli Gardens in Copenhagen, Denmark.
+[2] provides information that Tivoli Gardens opened on 15 August 1843.
+Answer: 15 August 1843",1,266,56,10
+smoke_topk_02_explain,explain,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0,"The passages indicate that both Scout Tufankjian and Art Laboe are Armenian-Americans, which means they share the same ancestral country of Armenia.","[1] Scout Tufankjian is an Armenian-American photojournalist and author based in Brooklyn, New York.
+[2] Art Laboe (born Arthur Egnoian on August 7, 1925) is an Armenian American disc jockey, songwriter, record producer, and radio station owner.
+Armenian
+The passages indicate that both Scout Tufankjian and Art Laboe are Armenian-Americans, which means they share the same ancestral country of Armenia.",0,246,98,10
+smoke_topk_02_explain,explain,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1,good,"[1] states that Wilmslow Show is held at Wilmslow High School. [2] provides information about Wilmslow High School, noting it is designated ""good"" by Ofsted. [1] helps answer the question.
+Answer: good",1,290,52,10
+smoke_topk_02_explain,explain,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5,Saoirse Ronan,"Sentence 1: [1] states that ""On Chesil Beach"" is an upcoming British drama film directed by Dominic Cooke.
+Sentence 2: [1] mentions that the film stars Saoirse Ronan and Billy Howle.
+Connection: From these two sentences, we can deduce that Billy Howle will be seen opposite Saoirse Ronan in the upcoming film.
+Answer: Saoirse Ronan",1,375,81,10
+smoke_topk_02_explain,explain,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6,The Lorax,"[1] states that Kool Kojak has worked with various artists including Danny DeVito in the film ""The Lorax"".
+[2] confirms that ""The Lorax"" is a 2012 animated film starring Danny DeVito.
+Connecting these:
+Since Kool Kojak has worked on ""The Lorax"" and this film stars Danny DeVito, we can infer that Kool Kojak's work on ""The Lorax"" likely included music production.
+Answer: The Lorax",1,593,103,10
+smoke_topk_02_explain,explain,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1,Jean-Claude Van Damme,"[1] states that Jean-Claude Van Damme portrays Luc Deveraux in the ""Universal Soldier"" film series.
+[2] mentions that the Universal Soldier franchise comprises six entries and that the films centered on Luc Deveraux until the sixth film, focusing on a new protagonist named John.
+Answer: Jean-Claude Van Damme",1,373,70,10
+smoke_topk_02_explain,explain,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6,War & Peace,"[1] states that Tommy's Honour is a 2016 historical drama film about Old Tom Morris and his son Young Tom Morris.
+[2] mentions Jack Lowden had success with the 2016 BBC miniseries ""War & Peace"".
+Connecting these:
+Jack Lowden, who starred in Tommy's Honour, gained recognition for his role in the 2016 BBC miniseries ""War & Peace"".
+Answer: War & Peace",1,298,94,10
+smoke_topk_02_explain,explain,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8,Midnight Oil,"[1] Switchfoot is an American alternative rock band from San Diego, California.
+[2] Midnight Oil (also known informally as ""The Oils"" to fans) are an Australian rock band, who originally performed as Farm from 1972 with drummer Rob Hirst, bass guitarist Andrew James and keyboard player/lead guitarist Jim Moginie. By late 1976, Garrett moved to Sydney to complete his law degree, and Farm changed its name to Midnight Oil by drawing the name out of a hat.
+Answer: Midnight Oil",1,333,113,10
+smoke_topk_02_explain,explain,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2,1967,"[1] states that ""Tunak Tunak Tun"" is a bhangra/pop love song by Daler Mehndi released in 1998. [2] provides that Daler Mehndi was born on 18 August 1967. [1] connects to [2] by mentioning Daler Mehndi as the artist behind ""Tunak Tunak Tun"". Therefore,
+Answer: 1967",1,394,94,10
+smoke_topk_02_explain,explain,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4,Captain John Underhill,"[1] states that Kieft's War involved a conflict between settlers of New Netherland and the Lenape population. [2] provides specific information about the Pound Ridge massacre, where Captain John Underhill led a night attack resulting in significant casualties.
+Connecting these, we can deduce that Captain John Underhill launched the attack that led to more casualties than any other incident in Kieft's War.
+Answer: Captain John Underhill",1,531,89,10
+smoke_topk_02_explain,explain,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4,The Outsiders,"[1] Nightmares (1983 film). Nightmares is a 1983 American horror anthology film directed by Joseph Sargent, and starring Emilio Estevez, among others.
+Emilio Estevez starred in Nightmares in 1983.
+Answer: The Outsiders",1,409,61,10
+smoke_topk_02_explain,explain,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7,"Brooklyn, Queens, Staten Island and Long Island","[1] states that Eric S. Pistorius used to be an attorney at law for his law firm. [2] mentions Loretta Lynch's previous role as United States Attorney for the Eastern District of New York, where she oversaw federal prosecutions in Brooklyn, Queens, Staten Island, and Long Island. [2] also indicates that before becoming Attorney General, Lynch held the position of United States Attorney for the Eastern District of New York. Combining these, we can infer that Eric S. Pistorius' law firm likely focused on cases related to Brooklyn, Queens, Staten Island, and Long Island.
+Answer: Brooklyn, Queens, Staten Island and Long Island",1,322,136,10
+smoke_topk_02_explain,explain,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6,Keelung,"Sentence 1: [1] states that the Lingnan Fine Arts Museum is in Nangang District, Taipei, Taiwan.
+Sentence 2: [2] provides information about Taipei, including its location relative to other cities.
+Connection: From [2], we know Taipei is about 25 km southwest of the northern port city Keelung.
+Answer: Keelung",1,354,76,10
+smoke_topk_02_explain,explain,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7,[2],"[1] states that Édouard Roger-Vasselin won the men's doubles title at Roland Garros in 2014.
+[2] states that Stefan Edberg won six Grand Slam singles titles and three Grand Slam men's doubles titles between 1985 and 1996.
+Answer: [2]",1,401,70,10
+smoke_topk_02_explain,explain,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8,organ,"[1] states that Jason Regler had the idea for the flashing wristbands while at a Coldplay concert, during the song ""Fix You"". [2] describes ""Fix You"" as a song by Coldplay built around an organ. Therefore, Jason Regler had the idea during a performance of ""Fix You"", which used an organ.
+Answer: organ",1,379,73,10
+smoke_topk_10_explain,explain,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8 1 0 5 2 7,Vice-Admiral,"[1] states that Iqbal F. Qadir participated in an attack on a radar station in Dwarka, India. Dwarka is located on the western shore of the Okhamandal Peninsula in Gujarat, India. [8] confirms this location.
+Connecting the useful passages:
+Iqbal F. Qadir was a Vice-Admiral in the Pakistan Navy when he participated in the attack on the radar station in Dwarka, India.
+Answer: Vice-Admiral",1,1536,101,10
+smoke_topk_10_explain,explain,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4 2 6 5 7 3,15 August 1843,"Sentence 2 states that Tivoli Gardens, where Tivolis Koncertsal is located, opened on 15 August 1843.
+Sentence 2 helps answer the question about when Tivolis Koncertsal's location, Tivoli Gardens, opened.
+Answer: 15 August 1843",1,1637,68,10
+smoke_topk_10_explain,explain,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2 1 9 6 3 4,Armenian,"Sentence 1: Scout Tufankjian is an Armenian-American photojournalist and author based in Brooklyn, New York.
+Sentence 2: Art Laboe is an Armenian American disc jockey, songwriter, record producer, and radio station owner.
+Sentence 3: Both Scout Tufankjian and Art Laboe share Armenian ancestry.
+Answer: Armenian",1,1792,71,10
+smoke_topk_10_explain,explain,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2 5 8 9 7 4,Centre of Excellence,"Sentence 1: Wilmslow Show is held at Wilmslow High School, Wilmslow, Cheshire, England.
+Sentence 2: Wilmslow High School is a mixed-sex 11–18 comprehensive secondary school in Wilmslow, Cheshire, and a designated Centre of Excellence.
+Answer: Centre of Excellence",1,1979,68,10
+smoke_topk_10_explain,explain,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7 2 3 1 8 6,Saoirse Ronan,"[2] states that Billy Howle will be seen opposite Saoirse Ronan in the drama ""On Chesil Beach"", which is directed by Dominic Cooke.
+Connecting the useful passages:
+Billy Howle's casting information in [2] directly answers the question regarding his upcoming film opposite Saoirse Ronan.
+Answer: Saoirse Ronan",1,1536,67,10
+smoke_topk_10_explain,explain,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3 7 9 2 8 4,Best Friend's Brother,"[2] states that ""The Lorax (film)"" is a 2012 American 3D computer-animated musical fantasy–comedy film produced by Illumination Entertainment and based on Dr. Seuss's children's book of the same name. [4] mentions that ""Best Friend's Brother"" features Kool Kojak as a producer. Connecting these, we find that Danny Devito starred in ""The Lorax"" and ""Best Friend's Brother"" was produced by him.
+Answer: Best Friend's Brother",1,1716,108,10
+smoke_topk_10_explain,explain,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0 4 2 9 6 7,Scott Adkins,"Passage [3] states that Scott Adkins has appeared in ""EastEnders"", ""Hollyoaks"", ""Doctors"" as well as starred in many direct-to-video films.
+Passage [6] mentions that Jean-Claude Van Damme and Dolph Lundgren, who both reprise their roles from the first film, star in Universal Soldier: Regeneration.
+Connecting these, we see that Scott Adkins is the only actor mentioned who has starred in ""Holby City"", ""Doctor Strange"", ""The Bourne Ultimatum"", and ""Zero Dark Thirty"".
+Answer: Scott Adkins",1,2021,123,10
+smoke_topk_10_explain,explain,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8 7 4 1 9 5,War & Peace,"Sentence 1: Tommy's Honour is a 2016 historical drama film depicting the lives and careers of, and the complex relationship between, the pioneering Scottish golfing champions Old Tom Morris and his son Young Tom Morris.
+Sentence 2: Jack Lowden, who starred in Tommy's Honour, is described as a Scottish stage, television, and film actor.
+Sentence 3: Jack Lowden's first major international onscreen success was in the 2016 BBC miniseries ""War & Peace"".
+Chain of reasoning:
+Jack Lowden, who starred in Tommy's Honour, found success with the 2016 BBC miniseries ""War & Peace"".
+
+Answer: War & Peace",1,1827,143,10
+smoke_topk_10_explain,explain,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2 0 1 3 6 9,Midnight Oil,"[2] states that Midnight Oil drew their name from a hat while performing as Farm. [1] does not provide information about how Switchfoot chose their name.
+Connecting the useful passages:
+[2] mentions Midnight Oil's origin and name selection process, while [1] provides information about Switchfoot's formation.
+Answer: Midnight Oil",1,1468,67,10
+smoke_topk_10_explain,explain,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3 6 8 7 0 4,1967,"Sentence 1: Tunak Tunak Tun is a bhangra/pop love song by Indian artist Daler Mehndi.
+Sentence 2: Daler Mehndi was born in 1967.
+Connection: Daler Mehndi, who created the song Tunak Tunak Tun, was born in 1967.
+Answer: 1967",1,1750,78,10
+smoke_topk_10_explain,explain,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1 3 6 7 5 0,Captain John Underhill,"[2] states that the Pound Ridge massacre was a battle of Kieft's War that took place in March 1644, where a mixed force of 130 Dutch and English soldiers led by Captain John Underhill launched a night attack on the village and destroyed it with fire. This battle resulted in more casualties than any other single incident in the war.
+Answer: Captain John Underhill",1,1629,82,10
+smoke_topk_10_explain,explain,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8 6 9 1 3 7,The Outsiders,"Sentence 1: Nightmares (1983 film). Nightmares is a 1983 American horror anthology film directed by Joseph Sargent, and starring Emilio Estevez, etc.
+Sentence 2: Emilio Estevez ( ; born May 12, 1962) is an American actor, director, and writer. He started his career as an actor and is well known for being a member of the acting Brat Pack of the 1980s, starring in ""The Breakfast Club"", ""St. Elmo's Fire"", and also acting in the 1983 hit movie ""The Outsiders"".
+Chain of reasoning: Emilio Estevez starred in ""The Outsiders"" in the same year as Nightmares (1983).
+Answer: The Outsiders",1,1308,168,10
+smoke_topk_10_explain,explain,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8 3 4 6 1 9,"personal injury, litigation, criminal defense, and collections","Sentence 1: Eric S. Pistorius used to be an attorney at law for his law firm.
+Sentence 2: His law firm specialized in the areas of: personal injury, litigation, criminal defense, and collections.
+Answer: personal injury, litigation, criminal defense, and collections",1,1704,58,10
+smoke_topk_10_explain,explain,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7 8 0 4 1 3,Keelung,"Sentence 1: [1] The Lingnan Fine Arts Museum is in Nangang District, Taipei, Taiwan.
+Sentence 2: [2] Taipei is about 25 km southwest of the northern port city Keelung.
+Connection: Since the museum is in Taipei and Taipei is near Keelung, we can conclude that Keelung is the port city approximately 25 km north of the museum.
+Answer: Keelung",1,1086,90,10
+smoke_topk_10_explain,explain,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9 1 8 5 3 4,yes,"[1] states that Édouard Roger-Vasselin is a male tennis player from France who won the men's doubles title at Roland Garros in 2014.
+[2] provides information about Stefan Edberg, stating he won six Grand Slam singles titles and three Grand Slam men's doubles titles between 1985 and 1996.
+Connecting these useful passages:
+Stefan Edberg has a longer list of Grand Slam titles compared to Édouard Roger-Vasselin, who won only one doubles title.
+Answer: yes",1,1081,116,10
+smoke_topk_10_explain,explain,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3 9 0 4 2 5,Fix You,"Sentence 2 states that ""Fix You"" is a song by Coldplay, which was played during a Coldplay concert when Jason Regler had the idea for the wristbands.
+Connecting the useful passages:
+Jason Regler had the idea for the flashing wristbands while watching Coldplay's 2012 concert, specifically during the song ""Fix You"".
+Answer: Fix You",1,1750,76,10

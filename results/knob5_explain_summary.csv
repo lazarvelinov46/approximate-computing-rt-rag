@@ -1,0 +1,4 @@
+k,complete_frac,em_short,em_explain,advantage,b_explain_wins,c_short_wins,discordant,p,verdict,parsed_ok,em_bridge_short,em_bridge_explain,em_comparison_short,em_comparison_explain
+2,0.519,0.366,0.355,-0.011,74,85,159,0.4278,powered null,0.993,0.3205,0.3416,0.5573,0.4115
+5,0.838,0.391,0.424,0.033,120,87,207,0.0259,SIGNIFICANT,0.994,0.3589,0.4121,0.526,0.474
+10,1.0,0.428,0.466,0.038,136,98,234,0.0154,SIGNIFICANT,0.995,0.3973,0.4691,0.5573,0.4531

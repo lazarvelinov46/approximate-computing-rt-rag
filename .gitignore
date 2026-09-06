@@ -52,6 +52,10 @@ results/*
 !results/knob5_r2_results.csv
 !results/knob5_r2_summary.json
 !results/knob5_r2_summary.csv
+!results/knob5_explain_smoke.csv
+!results/knob5_explain_results.csv
+!results/knob5_explain_summary.json
+!results/knob5_explain_summary.csv
 !results/figures
 figures/*
 !figures/.gitkeep
