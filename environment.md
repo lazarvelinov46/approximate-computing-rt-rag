@@ -513,3 +513,191 @@ bridge vs 80.8% robust (p=0.0195), against 84.7% vs 71.8% in short mode. A
 sign flip on a significant effect, not merely a null — comparison questions
 survive span extraction from a perturbed cache but not a 90-step reasoning
 chain over one.
+
+## Knob 5 — top-k (regimes 1 and 2, n=1000)
+
+**Setup.** `top_k` was already a parameter of `run_pipeline`,
+`run_pipeline_pooled`, `retrieve_all` and `retrieve_all_pooled`. Retrieval is
+exact throughout (fp32, IndexFlatIP), so this knob truncates a correct ranking
+rather than corrupting it — every passage in the prompt is one the precise
+pipeline would also have chosen, at the same rank. Notebooks 15-20.
+Artifacts: `results/knob5_*`.
+
+**Regime 1, short (per-question corpus, 10 paragraphs, 2 gold):**
+
+| k | complete_frac | EM | projected | residual | prompt tok | vs k=5 |
+|---|---|---|---|---|---|---|
+| 2 | 0.519 | 0.366 | 0.291 | +0.075 | 335 | b=81 c=106 d=187 p=0.0790 |
+| 3 | 0.683 | 0.379 | 0.343 | +0.036 | 469 | b=58 c=70 d=128 p=0.3309 null |
+| 5 | 0.838 | 0.391 | — | — | 744 | baseline |
+| 7 | 0.907 | 0.401 | 0.413 | −0.012 | 1035 | b=50 c=40 d=90 p=0.3428 null |
+| 10 | 1.000 | 0.428 | 0.442 | −0.014 | 1519 | b=83 c=46 d=129 **p=0.0014** |
+
+**Regime 2, short (A1 pooled, 66,581 passages):**
+
+| k | batch | complete_frac | EM | vs k=5 |
+|---|---|---|---|---|
+| 2 | 16 | 0.380 | 0.305 | b=69 c=70 d=139 p=1.0000 null |
+| 3 | 16 | 0.485 | 0.306 | b=48 c=48 d=96 p=1.0000 null |
+| 5 | 16 | 0.573 | 0.306 | baseline |
+| 10 | 16 | 0.673 | 0.332 | b=72 c=46 d=118 **p=0.0210** |
+| 20 | 8 | 0.743 | 0.313 | b=76 c=69 d=145 p=0.6184 null |
+
+**The frozen baseline is itself an approximation.** In regime 1 the corpus is
+exactly 10 paragraphs, so k=10 makes the retriever a reordering no-op and pins
+complete_frac at 1.000. It beats k=5 at p=0.0014 (+0.037 EM). Every regime-1
+number in the study sits 0.037 below the pipeline's ceiling. Knobs 1-3 are
+unaffected — all compare against the same baseline — but k=5 was never optimal.
+
+**Reduction is free well below the baseline.** k=3 matches k=5 in regime 1
+(p=0.3309) at 63% of the prompt tokens. In regime 2 k=2 and k=3 are exact ties
+(p=1.0000, b=c), with complete_frac falling 0.573 -> 0.380. A third of the
+evidence disappears and quality does not move.
+
+**Interior optimum, regime 2 only.** k=10 beats the baseline; k=20 does not,
+despite +0.170 complete_frac. Full-set k=10 vs k=20 is p=0.0642 — trending. But
+with evidence held fixed, k=10 beats k=20 at p=0.0161. The optimum is two
+significant opposing effects that nearly cancel, not a single peak. Regime 1 is
+strictly monotone because its distractors are capped at 8 curated ones.
+
+**Distractor cost is real, large and front-loaded.** On the stratum
+`gold_depth <= 2` (evidence complete at every k, n=519 / 380), the first
+distractor costs ~0.06 EM in both regimes (R1 k=2 vs k=5 p=0.0000; R2
+p=0.0002). Distractors 2-8 cost nothing (R1 k=5 vs k=10 p=0.1770, powered
+null). Regime 2 resumes falling past 8 (k=10 vs k=20 p=0.0161).
+
+| distractors | 0 | 1 | 3 | 5 | 8 | 18 |
+|---|---|---|---|---|---|---|
+| regime 1 EM | 0.5453 | 0.4855 | 0.4470 | 0.4509 | 0.4682 | — |
+| regime 2 EM | 0.5474 | 0.4816 | 0.4684 | — | 0.4816 | 0.4368 |
+
+**Structure-independence, 4th replication and the strongest.** At matched
+evidence the two regimes are indistinguishable: 0.5453 vs 0.5474 at zero
+distractors, 0.4682 vs 0.4816 at eight. The regime-level EM gap (0.391 vs
+0.306) is *entirely* evidence delivery, with nothing left for corpus size, id
+space or distractor provenance. The decomposition confirms it: on questions
+where evidence moves, k=2 vs k=10 is b=118 c=16 p=0.0000 favouring k=10; on the
+fixed-evidence stratum the same comparison favours k=2, b=31 c=71.
+
+**The explain advantage tracks complete_frac.** −0.011 at cf 0.519 (d=159,
+p=0.4278, powered null), +0.033 at 0.838 (p=0.0259), +0.038 at 1.000
+(p=0.0154). Regime 2's attenuation (cf 0.573, p=0.335) is therefore explained
+by evidence completeness alone — the regime transition changed corpus, id space
+and completeness at once; the k-sweep changes only completeness and reproduces
+it. Explain at k=10 gives EM 0.466, the highest figure in the study.
+
+**The advantage is a net of two opposing effects.** 808 bridge / 192
+comparison (65 yes/no golds, all comparison). Explain helps bridge
+(+0.021 / +0.053 / +0.072; p=0.1319, 0.0010, 0.0000) and HURTS comparison
+(−0.146 / −0.052 / −0.104; p=0.0000, 0.1641, 0.0037 — same sign at all three).
+The prior account ("explain helps bridge chaining, attenuation is missing
+hops") is right about bridge and omitted the comparison penalty.
+
+**The comparison penalty is a reasoning failure, not a metric artifact.**
+`parsed_ok` is 1.0000 and F1 barely helps (f1_adv −0.086 vs em_adv −0.110 at
+k=10). Explain reports the comparison CRITERION instead of the verdict: gold
+`Burton Lorne Cummings`, answer `December 31, 1947`; gold `no`, answer `Both`.
+Significant on open-answer comparison (n=127, p=0.0066), underpowered on
+yes/no (n=65, p=0.2632). Bridge is the opposite — f1_adv exceeds em_adv at
+every k (0.032/0.021, 0.079/0.053, 0.096/0.072), so EM understates explain's
+benefit on 808 questions and correctly counts its harm on 192. Given F1 already
+supplies that partial credit, the LLM-judge question (open question 3) is
+CLOSED: no judge.
+
+**Top-k does nothing for comparison questions, in either mode.** `em_comparison`
+is flat across the short sweep in both regimes; within explain, k=2 vs k=10 on
+comparison is p=0.3222 against bridge's b=161 c=58 p=0.0000. Every result in
+this knob is a bridge result.
+
+**Batch composition is now measured, not assumed.** The regime-2 k=5 control at
+batch 8 against batch 16: 0 discordant EM pairs out of 1000, and 3 of 1000
+prediction strings differ — one is fp16 noise crossing into Qwen's Chinese
+vocabulary (`'not enough信息'` -> `'not enough information'`), one changes
+`'1902-1907'` -> `'1902-1903'`, one changes the answer outright
+(`'James Taylor'` -> `'Rock and Roll Hall of Fame'`). Batch composition can
+change an answer, at 0.3%, and flipped no EM outcome. The frozen invariant is
+upgraded from assumption to a measured 0/1000.
+
+**The projection residual changes sign.** Positive below the baseline (+0.075,
++0.036), negative above (−0.012, −0.014). Knobs 1 and 2 only ever
+underpredicted. Below k=5 the real `em_incomplete` exceeds the frozen 0.1296
+(0.173, 0.167); above k=5 `em_complete` falls below 0.4415. Third distinct
+cause of conditional drift: selection (knobs 1-2), generator damage (knob 3),
+distractor load (knob 5).
+
+**Abstention: direction right, magnitude wrong.** Rises as k falls (R1 0.005 ->
+0.029, R2 0.013 -> 0.041), the retrieval-side signature. Predicted to land
+between knob 1's 0.108 and knob 2's 0.083; it is an order of magnitude lower.
+Truncation delivers a correct prefix, so the top passage is always the best
+available match — knobs 1 and 2 substitute wrong passages, and that is what
+triggers refusal.
+
+**Falsified predictions, recorded.** (a) Abstention magnitude, above.
+(b) Regime-2 distractors, retrieved from 66,581 candidates, were predicted to
+hurt more than HotpotQA's planted ones; they hurt slightly less (−0.079 vs
+−0.098 over 0->3 distractors) because the planted ones were adversarially
+selected by TF-IDF. (c) The comparison penalty was initially read as LLM-judge
+evidence; it is not.
+
+**Amendments.**
+1. `knobs.yaml` `knob_top_k.k` from `[5, 3, 1]` to `[10, 7, 5, 3, 2]` — the
+   committed range held only reductions, presupposing k=5 is precise. The
+   regime-1 corpus shape (measured nb 01) makes k=10 the zero-approximation
+   anchor. Fact did not exist when the range was written. No results seen.
+2. k=1 dropped — `complete_frac(1) = 0` by construction with 2 gold, so it is
+   not a point on the same curve. No results seen.
+3. Regime-2 k=20 at `batch_size` 8 with a matched k=5 control — the 4,945-token
+   worst prompt OOMs at batch 16. Ladder: batch 12 OOM, 8 OK at 12.62 GiB.
+   Decided on a memory measurement before any k=20 EM existed.
+4. Acceptance-rule carve-out: `discordant = 0` with identical marginals is a
+   NULL, not UNINFORMATIVE. Knob 3 already treated 8-bit KV's zero-discordant
+   case as a null; consistency, not convenience. Results seen.
+
+**Implementation invariants (new).**
+- `Q.aggregate(rows, k=k_of_that_setting)`. `score_rows` slices
+  `retrieved_ids[:k]`; `aggregate` names the column `recall@{k}`. Knob 5 is the
+  first sweep where `len(retrieved_ids)` varies by setting. For k < 5 a global
+  `k=5` is a harmless no-op; for k > 5 it truncates a k=10 run to five ids and
+  reports complete_frac 0.838 instead of 1.000. The global `k=TOP_K` line in
+  notebooks 06 and 08 must not be copied forward.
+- `top_k` guard in `run_pipeline` and `run_pipeline_pooled`, mirroring the
+  `kv_label` guard: a frozen baseline tag cannot be combined with a
+  non-baseline `top_k`. Without it a mistyped `setting` appends into the frozen
+  Phase-1 CSV and `_writer`'s header check passes.
+- Setting names encode k (`topk_02`, `r2_topk_20_b8`), following `KV.label()`.
+  `FIELDS` unchanged — a new column would make `_writer` reject appends to
+  every existing CSV.
+- The k=1..10 curve is one `search(k=10)` sliced, validated by asserting
+  `search(k=10)[:, :j] == search(k=j)` for j=1..10. Zero mismatches.
+- `Q.f1`, not `Q.f1_score`.
+
+**Retrieval curves (free, deterministic).** `gold_depth` = rank of the deeper
+gold passage; `complete_frac(k)` is its CDF. Regime 1: 0.000 / 0.519 / 0.683 /
+0.775 / 0.838 / 0.874 / 0.907 / 0.935 / 0.970 / 1.000 for k=1..10; median
+gold_depth 3 for bridge, 2 for comparison. Regime 2: 0.380 / 0.485 / 0.573 /
+0.673 / 0.743 / 0.777 / 0.816 at k = 2/3/5/10/20/30/50, with `recall@50` only
+0.9055 — ~9.5% of gold is unreachable by bge-small at any k, an embedder
+asymptote. The pre-registered stopping rule (extend while a doubling buys
+>= 0.02 complete_frac) NEVER binds in regime 2; memory binds first at every step.
+
+**Hardware shaping the study, second instance.** Regime-2 k=20 will not fit at
+`batch_size` 16 on a 14.56 GiB T4. The k-ladder tops out at k=12 (12.85 GiB).
+Regime 2's completeness therefore caps at 0.743 rather than at the corpus,
+while regime 1 reaches 1.000. With knob 3's `sm_75` optimum-quanto failure this
+is the second case of hardware deciding which comparisons the study can make —
+relevant to open question 2, since Qwen2.5-7B doubles the weights and eats
+headroom that already ran out.
+
+**Efficiency framing.** Prompt length is ~`39 + 148k` generator tokens. Knob 5
+is the first knob acting on the dominant cost term: at k=10 regime 2, peak is
+12.07 GiB against 5.87 GiB of weights — 6.2 GiB of activations and KV at 2,224
+padded tokens, versus knob 3's 2.36 / 0.42 GiB at 744. Short-mode runtime is
+prefill-dominated and roughly linear in k (3.5 min at k=2 to 13 min at k=10);
+explain is decode-dominated (16.2 / 48.7 min) and spends 70-82 decode tokens on
+yes/no questions where short spends 1.1. knob 3 x knob 5 is the natural first
+joint surface: k sets the cache extent, bits set its precision.
+
+**Not pursued.** Distractor count and prompt length are confounded within this
+knob — separating them needs a fixed-k run with padded context. The regime-2
+upward arm is capped by memory, not evidence, so on a 4090 the interior optimum
+could be located rather than bracketed.
