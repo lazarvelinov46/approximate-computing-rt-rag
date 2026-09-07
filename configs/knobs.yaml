@@ -16,5 +16,5 @@ knob_kv_precision:               # AC technique: precision scaling
 knob_kv_eviction:                # AC technique: computation skipping
   keep_ratio: [1.0, 0.75, 0.5, 0.25]   # 1.0 = full cache baseline
 
-knob_top_k:                      # AC technique: data sampling (optional 5th knob)
-  k: [5, 3, 1]                      # 5 = baseline
+knob_top_k:                      # AC technique: data sampling
+  k: [10, 7, 5, 3, 2]               # 10 = precise (regime 1: whole corpus); 5 = frozen baseline

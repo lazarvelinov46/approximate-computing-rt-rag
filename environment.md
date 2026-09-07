@@ -514,6 +514,221 @@ sign flip on a significant effect, not merely a null — comparison questions
 survive span extraction from a perturbed cache but not a 90-step reasoning
 chain over one.
 
+## Knob 4 — KV cache eviction (regime 1, n=1000)
+
+**Status: setup and pre-registration only. No sweep has run.** Notebooks 21
+(env audit, CPU), 22 (module test, CPU), 23 (smoke, GPU).
+Module: `src/generator/eviction.py`. Record: `results/knob4_env_audit.json`.
+
+**Pre-registered claim.** Eviction imposes a measurable quality cost against
+an efficiency benefit that does not materialise at this scale. Eviction acts
+AFTER prefill while peak memory occurs DURING prefill, so it cannot lower the
+peak — it only shrinks what the decode steps carry. Short mode decodes 3.6
+tokens on average. A null on efficiency is the RESULT, not a disappointment,
+and it answers open question 1 directly: the long-context KV literature's
+assumptions do not hold in short-context RAG.
+
+**Memory model, verified against the config.** Qwen2.5-3B: 36 layers, 2 KV
+heads, head_dim 128 (absent from config.json; falls out of 2048/16). Per
+cached token 2*2*128*2B*36 = 36.0 KiB. At S=744, batch 16 that is 0.409 GiB,
+reproducing knob 3's MEASURED 0.42 GiB. Against 5.87 GiB of resident weights,
+KV is the smallest term at every k the T4 will hold.
+
+### transformers 5.0.0 has no eviction primitive
+
+The cache was restructured into two levels: `CacheLayerMixin` (per-layer
+storage) and `Cache` (a list of layers). Layers: `DynamicLayer`,
+`DynamicSlidingWindowLayer`, `StaticLayer`, `StaticSlidingWindowLayer`,
+`QuantizedLayer`, `QuantoQuantizedLayer`, `HQQQuantizedLayer`. Caches:
+`DynamicCache`, `StaticCache`, `QuantizedCache`, `EncoderDecoderCache`.
+
+- Zero occurrences of evict/compress/prune/topk/budget/drop/keep in
+  `cache_utils.py`. The only `evict` hits in the package are paged-attention
+  block reclamation in `generation/continuous_batching` — request-level, not
+  token-level.
+- `SinkCache` is REMOVED (existed in 4.x), with no replacement. The sliding
+  window layers are recency-only with no attention sink.
+- `cache_implementation` accepts `static, offloaded_static, dynamic,
+  dynamic_full, offloaded, quantized`, plus deprecated `sliding_window` /
+  `hybrid*` aliases that route to `StaticCache` with layer types inferred from
+  config. `max_cache_len` is a preallocation size, not an eviction budget.
+- The custom-cache path is `past_key_values=<Cache instance>` — escape route 1
+  in `_prepare_cache_for_generation`, which short-circuits and raises if
+  `cache_implementation` is also set. `cache_config` reaches `QuantizedCache`
+  alone, so knob 3's path in `kv_cache.py` is NOT reusable. A knob3 x knob4
+  joint would have to subclass `QuantizedLayer`, not compose two kwarg dicts.
+- Qwen2.5-3B declares `use_sliding_window=False`, so `sliding_window` is nulled
+  and `layer_types` is 36 x `full_attention`. `DynamicCache(config=...)` builds
+  36 plain `DynamicLayer`s. The Phase-1 baseline carries no silent truncation.
+
+**Attention weights are unreachable through the normal forward, even under
+eager.** `Qwen2DecoderLayer` does `hidden_states, _ = self.self_attn(...)` and
+returns a bare tensor; `output_attentions` is gone from qwen2 modeling in
+5.0.0. Under SDPA `attn_weights` is None regardless. The only route is a module
+forward hook on `model.model.layers[i].self_attn`, real only under
+`attn_implementation="eager"`. Separately, `update()` receives
+`cache_kwargs = {cache_position, cos, sin}` and NO query states, so an
+attention policy cannot live inside a cache layer at all.
+
+### A non-contiguous keep-set requires a uniform padding mask (measured)
+
+`get_mask_sizes` can only report `(kv_length, kv_offset)` and `sdpa_mask`
+builds `arange(kv_length) + kv_offset`. The mask machinery can describe a
+CONTIGUOUS kv range and nothing else. `DynamicSlidingWindowLayer` works only
+because a suffix is contiguous by construction.
+
+Measured on a tiny Qwen2, sink+recent (2+6) with eviction firing (15 tokens
+per layer):
+- length-uniform batch, R=4: all four rows match their batch-1 run.
+- mixed-length batch: the padded row diverges, SILENTLY, no exception.
+- recency window: passes both, at every row.
+
+So padding is the sole cause, not batch size and not the policy. **Under
+`padding_side="left"`, "keep first N" also pins N PAD tokens rather than the
+attention sink** — a second, independent reason the position family cannot run
+padded.
+
+### RoPE re-rotation is ON for every non-contiguous policy
+
+Keys are stored AFTER rotary embedding, so the angle is baked in. Deleting the
+middle deletes the tokens but not their phases, leaving a distance ladder with
+a hole in it. StreamingLLM re-assigns positions within the cache; skipping that
+is a different and weaker method, so calling it StreamingLLM would be false.
+
+Rotations compose — R(d).R(p) = R(p+d) — so a stored key moves to a new
+position exactly, with no pre-RoPE copy. The invariant maintained: the newest
+key keeps its true position and every retained key is packed contiguously
+backwards from it. Recency satisfies this already (deltas identically zero,
+hence no rotation and no cost); sink+recent moves only the sink block, by +1
+per decode step.
+
+Verified in notebook 22: max |composed - direct| = 5.8e-07; zero delta is an
+exact no-op; the shift fires 10 times over 10 decode steps for sink_recent,
+confirming the derived +1 per step; the naive branch leaves exactly one phase
+hole. `attention_scaling` is deliberately NOT applied in `_rotate` — the stored
+key is already s.R(p).k, so applying R(d) unscaled yields s.R(p+d).k. Applying
+it scaled would square s.
+
+**Second payoff.** With the phase invariant, the `(kv_length, kv_offset)` the
+mask builder receives is literally true rather than approximate. Re-rotation
+repairs the very mask description the contiguity measurement caught failing.
+
+### Eager attention produces NaN under left padding
+
+Measured on 32 regime-1 dev questions, notebook 23:
+
+| comparison | strings differing |
+|---|---|
+| batch 1, eager vs sdpa | 0 / 32 (bit-identical) |
+| sdpa, batch 16 vs batch 1 | 0 / 32 |
+| batch 16, eager vs sdpa | 30 / 32 |
+
+The batch-16 row is NOT a numerics difference. Eager output is token id 0
+(`"!"`) repeated — NaN logits. A left-padded row's leading PAD queries can
+attend to nothing, so eager's additive mask gives an all `-inf` softmax row,
+and NaN propagates through the row because `0 * NaN = NaN`. SDPA's
+memory-efficient kernel returns zeros for a fully-masked row instead.
+Confirmed directly: NaN on exactly the 3 padded rows of a 4-row batch (pads
+433/713/631), none on the unpadded row, first NaN at position 0 inside the pad
+prefix. The 2 survivors of the batch-16 run were both the batch maximum, i.e.
+zero-padded.
+
+**Eager is UNUSABLE at batch > 1 under `padding_side="left"`.** Not a
+configuration choice — a library-level gap with no fully-masked-row guard.
+
+T4 sm_75 SDPA backends: `FLASH_ATTENTION` UNAVAILABLE (needs sm80+),
+`EFFICIENT_ATTENTION` and `MATH` available.
+
+**Consequence: knob 4 runs at `batch_size=1`.** No padding, so all four policy
+families work; eager and sdpa are bit-identical there, so position and
+attention arms share ONE numerics regime at zero cost; and the pre-registered
+matched control collapses into the batch-1 no-eviction reference every eviction
+setting is already measured against. No separate control run.
+
+### Hardware and library shaping the study, third instance
+
+After knob 3's `sm_75` optimum-quanto failure and knob 5's regime-2
+completeness capping at 0.743 on 14.56 GiB, eager-at-batch-16 is a third case
+of the platform deciding which comparisons the study can contain. Relevant to
+open question 2: this is a pattern, not bad luck, and Qwen2.5-7B doubles
+weights into headroom that already ran out.
+
+### Amendments
+
+1. `batch_size` 1 for knob 4, against the frozen 16. Motivated by the padding
+   measurement above, before any eviction EM existed. Knob 5 measured batch 8
+   vs 16 at 0 discordant EM pairs / 1000, and this run measured sdpa batch 16
+   vs batch 1 at 0/32 strings. No results seen.
+2. RoPE position-shifting ON for all non-contiguous policies, with
+   `evict_sink*_naive` as a single-budget ablation. Motivated by fidelity to
+   the method being cited. No results seen.
+3. GQA aggregation for the attention family: scores from the 8 query heads
+   sharing each KV head reduced by MEAN before top-k. Pre-registered, not
+   tuned — the position family has no equivalent free parameter, and a
+   max-vs-mean difference would confound the mechanism contrast. No results
+   seen.
+
+### Implementation invariants (new)
+
+- `EvictLayer` follows `DynamicSlidingWindowLayer`'s contract: STORE the
+  subset, RETURN the full states. Returning truncated states would change the
+  hidden states of every prefill position, which is a different computation,
+  not an evicted cache.
+- `make_cache` returns a FRESH `Cache` per call, for a stronger reason than
+  knob 3's: a Cache carries the previous batch's KEYS, not just a config dict.
+  Reuse raises `IndexError` (stale `cumulative_length` empties the `input_ids`
+  slice) — loud, not silent.
+- `policy="none"` returns `None`, so `past_key_values=None` is byte-identical
+  to the Phase 1 path.
+- Guards in `make_cache`: non-contiguous policy at `batch_size != 1` raises
+  unless `allow_padded`; `shift_rope=False` raises unless `allow_naive`
+  (the `allow_flush` precedent).
+- `run_pipeline` needs an eviction-parameter guard mirroring the `kv_label`
+  and `top_k` guards, or a mistyped setting appends into the frozen Phase-1
+  CSV and `_writer`'s header check passes. NOT YET WRITTEN.
+- Setting names encode the config (`evict_recency_b256`,
+  `evict_sink4_recent252_b256`, `evict_random_b256_s42`), following
+  `KV.label()`. `FIELDS` unchanged.
+- Rotation composition is exact only while `inv_freq` is fixed for the run:
+  `rope_type` must be in (default, linear, yarn, llama3). `dynamic` and
+  `longrope` recompute it mid-generation. Qwen2.5-3B is `default`.
+
+### Corrections
+
+- `rope_scaling is None` was the wrong precondition. In 5.0.0 `rope_scaling`
+  is an alias property for `rope_parameters`, which `standardize_rope_params`
+  always populates, so it is never None. The correct condition is on
+  `rope_type`.
+- Decoded tokens are NOT a valid instrument for numerical differences on a
+  random-init 2-layer model: greedy argmax is near-degenerate there, and the
+  first version of the shift test read a real rotation as a no-op. Logits, and
+  the direct identity check, are the instruments. Consequence for the sweep: a
+  naive-vs-shifted EM null on the 3B is a legitimate pre-registered null only
+  because the identity check independently proves the rotation is applied.
+- The notebook-23 summary line printed "eager confound exists: True", counting
+  a NaN failure as a numerics difference. Two distinct phenomena conflated.
+- A full forward materialises logits for EVERY position (16 x 1105 x 151k) and
+  OOMs; `generate()` slices to the last position. Read hidden states off the
+  base model for per-row NaN diagnosis.
+- The tiny random-init model can validate MECHANICS only and says nothing about
+  sink POLICY quality: a random model has no learned attention sink for the
+  sink tokens to absorb.
+
+### Open before the sweep
+
+**Budget axis undecided.** `configs/knobs.yaml` commits
+`knob_kv_eviction.keep_ratio: [1.0, 0.75, 0.5, 0.25]`, but `EvictLayer` takes
+an ABSOLUTE budget. The two are not interchangeable: regime-1 prompts run 344
+to 1524 tokens, so a fixed budget evicts nothing for short prompts and heavily
+for long ones, making the setting non-uniform across questions, while
+keep_ratio holds the evicted FRACTION uniform but varies the footprint that
+the efficiency claim is about. Must be resolved, with the reason recorded,
+before any setting list is frozen.
+
+Also open: `P2-K4-2` attention-based eviction (forward hook + eager at batch
+1); the `run_pipeline` eviction guard; and end-to-end batch-1 timing, since
+1000 sequential `generate` calls per setting sizes the whole setting list.
+
 ## Knob 5 — top-k (regimes 1 and 2, n=1000)
 
 **Setup.** `top_k` was already a parameter of `run_pipeline`,
