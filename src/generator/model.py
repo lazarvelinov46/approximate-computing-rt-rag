@@ -105,7 +105,8 @@ def build_prompt(tok, question: str, paragraphs: Sequence[str],
 @torch.inference_mode()
 def generate_batch(model, tok, prompts: Sequence[str],
                    max_new_tokens: int = 32,
-                   kv: Optional[dict] = None) -> List[str]:
+                   kv: Optional[dict] = None,
+                   evict: Optional[dict] = None) -> List[str]:
     """Greedy-decode a batch of prompts -> list of answer strings.
 
     With padding_side="left" every sequence in the batch shares one padded
@@ -119,8 +120,20 @@ def generate_batch(model, tok, prompts: Sequence[str],
     HERE, per batch, because generate() pops "backend" out of whatever dict
     it is handed — a reused dict silently reverts to the quanto backend after
     the first batch.
+
+    `evict` is a knob-4 spec, e.g. {"policy": "recency", "keep_ratio": 0.5}.
+    None, policy "none", or keep_ratio 1.0 leaves past_key_values=None, which
+    _prepare_cache_for_generation treats as "no user cache" (the escape-route
+    guard tests `is not None`), so the Phase 1 path is untouched. The Cache is
+    rebuilt HERE, per batch, for a stronger reason than the kv dict: a Cache
+    carries the previous batch's KEYS, and reuse raises IndexError.
+
+    The two specs are mutually exclusive until a knob3 x knob4 joint is
+    explicitly scoped: a QuantizedCache and an EvictLayer cannot both be the
+    cache, and combining them needs QuantizedLayer subclassing, not two kwargs.
     """
     from src.generator import kv_cache as KV
+    from src.generator import eviction as EV
 
     spec = dict(kv or {})
     allow_flush = spec.pop("allow_flush", False)
@@ -136,13 +149,30 @@ def generate_batch(model, tok, prompts: Sequence[str],
 
     cache_kwargs = KV.make_cache(**spec)
 
+    ev = dict(evict or {})
+    evicting = (ev.get("policy", "none") != "none"
+                and ev.get("keep_ratio", EV.NO_EVICTION) < EV.NO_EVICTION)
+    if evicting and cache_kwargs:
+        raise ValueError(
+            f"kv={kv} and evict={evict} together is a knob3 x knob4 joint, "
+            f"which is NOT scoped: a QuantizedCache and an EvictLayer cannot "
+            f"both be the cache object. Combining them requires subclassing "
+            f"QuantizedLayer. Run one knob at a time.")
+
+    # Built from len(prompts) rather than the padded tensor so the batch guard
+    # fires before tokenization — that keeps the guard testable with model=None.
+    cache = EV.make_cache(model=model, batch_size=len(prompts),
+                          **ev) if evicting else None
+
     enc = tok(list(prompts), return_tensors="pt", padding=True).to(model.device)
-    out = model.generate(
-        **enc,
-        **cache_kwargs,
-        max_new_tokens=max_new_tokens,
-        do_sample=False,
-        pad_token_id=tok.pad_token_id,
-    )
+    with EV.attention_scoring(model, cache):
+        out = model.generate(
+            **enc,
+            **cache_kwargs,
+            past_key_values=cache,
+            max_new_tokens=max_new_tokens,
+            do_sample=False,
+            pad_token_id=tok.pad_token_id,
+        )
     gen = out[:, enc["input_ids"].shape[-1]:]
     return [t.strip() for t in tok.batch_decode(gen, skip_special_tokens=True)]
