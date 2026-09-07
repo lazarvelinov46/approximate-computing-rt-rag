@@ -13,89 +13,93 @@ which are recency-only with no attention sink. `cache_implementation` has no
 registry for custom classes and `cache_config` reaches QuantizedCache alone,
 so knob 3's path in kv_cache.py is not reusable. The supported entry point is
 `past_key_values=<Cache instance>` — "escape route 1" in
-GenerationMixin._prepare_cache_for_generation, which short-circuits and
-raises if cache_implementation is also set.
+GenerationMixin._prepare_cache_for_generation.
 
 Why keep_ratio and not an absolute budget
 -----------------------------------------
-configs/knobs.yaml commits keep_ratio [1.0, 0.75, 0.5, 0.25], and it is the
-right axis. Regime-1 prompts run 344 to 1524 tokens, so a fixed budget would
-evict nothing for short prompts and heavily for long ones — one setting would
-then average two populations, which is exactly the outcome-dependent
-approximation that residual_length=512 was chosen to avoid in knob 3. A ratio
-treats every question identically; the footprint is reported as a mean.
-
-The budget is fixed at PREFILL and held for the run. Recomputing it per decode
-step would let it drift upward as the sequence grows, making the footprint a
-moving target within a single setting.
+configs/knobs.yaml commits keep_ratio [1.0, 0.75, 0.5, 0.25]. Regime-1 prompts
+run 344 to 1524 tokens, so a fixed budget would evict nothing for short prompts
+and heavily for long ones — one setting averaging two populations, the
+outcome-dependent approximation residual_length=512 was chosen to avoid in
+knob 3. The budget is fixed at PREFILL and held for the run; recomputing per
+step would let it drift upward as the sequence grows.
 
 Why batch_size must be 1
 ------------------------
-MEASURED in notebook 21 cells 5-6. get_mask_sizes can only report
-(kv_length, kv_offset) and sdpa_mask builds `arange(kv_length) + kv_offset`,
-so the mask machinery can describe a CONTIGUOUS kv range and nothing else.
-A keep-set that is not a contiguous suffix therefore cannot be described.
-Under a uniform (all-ones) padding mask this costs nothing — sink+recent
-passed all four rows of a length-uniform batch with eviction firing. With
-padding_side="left" it fails, SILENTLY and with no exception, on exactly the
-padded rows. Recency passed both because a suffix is contiguous by
-construction. Separately, "keep first N" under left padding pins N PAD tokens
-rather than the attention sink.
-
-Notebook 23 then measured that eager attention produces NaN under left padding
-(all -inf softmax row), so batch 1 is required for the attention family too.
-At batch 1, eager and sdpa are bit-identical (0/32 prediction strings differ),
-so all four families share one numerics regime at no cost.
+MEASURED, notebook 21 cells 5-6. get_mask_sizes reports (kv_length, kv_offset)
+and sdpa_mask builds `arange(kv_length) + kv_offset`, so only a CONTIGUOUS kv
+range can be described. Non-contiguous keep-sets pass a length-uniform batch
+and fail SILENTLY on padded rows. Separately, "keep first N" under
+padding_side=left pins N PAD tokens rather than the sink. Notebook 23 then
+measured that eager attention NaNs under left padding (all -inf softmax row),
+which the attention policy needs. At batch 1 eager and sdpa are bit-identical
+(0/32 strings), so all families share one numerics regime at no cost.
 
 Why the keys are re-rotated (SHIFT_ROPE)
 ---------------------------------------
-Keys are stored AFTER rotary embedding, so the angle is baked in. Deleting the
-middle deletes the tokens but not their phases, leaving the model a distance
-ladder with a hole in it. StreamingLLM re-assigns positions within the cache;
-skipping that is a DIFFERENT and weaker method, so calling it StreamingLLM
-would be false.
+Keys are stored AFTER rotary embedding. Deleting the middle deletes the tokens
+but not their phases, leaving a distance ladder with a hole in it.
+StreamingLLM re-assigns positions within the cache; skipping that is a weaker
+method. Rotations compose — R(d).R(p) = R(p+d) — verified at 5.8e-07 in
+notebook 22. Invariant: the newest key keeps its true position and every
+retained key packs contiguously backwards from it, which also makes the
+(kv_length, kv_offset) handed to the mask builder exactly true.
+attention_scaling is NOT applied in _rotate: the stored key is already
+s.R(p).k, so R(d) unscaled gives s.R(p+d).k. Composition is exact only while
+inv_freq is fixed, so rope_type must be in STATIC_ROPE.
 
-Rotations compose — R(d) . R(p) = R(p+d) — so a stored key is moved to a new
-position exactly by applying one further rotation. No pre-RoPE copy needed.
-Verified at max |composed - direct| = 5.8e-07 in notebook 22.
+The attention policy (H2O / SnapKV family)
+------------------------------------------
+Scores come from a forward hook on layers[i].self_attn, which receives the
+module's (attn_output, attn_weights) tuple. attn_weights is real only under
+attn_implementation="eager"; Qwen2DecoderLayer discards it, and update()
+receives no query states, so no other route exists.
 
-The invariant maintained here: the newest key keeps its true position, and
-every retained key is packed contiguously backwards from it. Recency satisfies
-this already (all deltas zero, hence no rotation and no cost); sink+recent
-moves only the sink block, by +1 per decode step; random moves whatever it has
-to. With the invariant, `get_mask_sizes` returning (stored + q, cumulative -
-stored) describes the stored phases EXACTLY rather than approximately.
+Pre-registered choices, none tuned:
+  GQA REDUCTION: the 8 query heads sharing each KV head are reduced by MEAN.
+  HEAD REDUCTION: a further MEAN over the KV heads. Forced, not chosen — the
+    layer stores one [B, n_kv, S, D] tensor and index_select on the sequence
+    dim applies across heads, so the keep-set is per-LAYER. Per-head keep-sets
+    are implementable with gather (the phase invariant keeps them maskable
+    since every head packs to the same ladder) and are recorded as NOT TAKEN.
+  ACCUMULATION: MEAN over steps observed, not SUM. Sum rewards age — a key
+    present for 30 steps would outscore one present for 3.
+  CAUSALITY CORRECTION: at prefill, key j is visible to queries j..S-1, so a
+    plain mean over the query axis rewards early keys for being early and
+    would hand the policy the sink as an artifact. Each key's mass is divided
+    by its visible-query count, which removes this exactly.
+  PREFILL KEEPS EVERYTHING. The hook fires after the update() it would inform,
+    so no scores exist at prefill. Eviction begins at the first decode step.
+    Position policies evict at prefill; budgets match from step 1 onward and
+    eviction cannot lower peak memory either way, so the contrast holds. The
+    difference in first application is recorded, not hidden.
+  THE SINK IS NOT SPECIAL-CASED. If attention rediscovers it, that is a result.
 
-attention_scaling is deliberately NOT applied in _rotate. The stored key is
-already s.R(p).k_raw; applying R(d) unscaled yields s.R(p+d).k_raw, which is
-correct. Applying it scaled would square s.
-
-Rotation composition is exact only while inv_freq is FIXED for the run, so
-rope_type must be one of default/linear/yarn/llama3. dynamic and longrope
-recompute it mid-generation. Qwen2.5-3B is default.
+The hook sees attention over the FULL returned states, not the stored subset,
+so update() records `_last_keep` and the hook maps full-length mass onto the
+retained keys through it.
 """
 
 from __future__ import annotations
 
+import contextlib
 import math
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 # --- frozen study constants ----------------------------------------------
-# StreamingLLM's standard sink width. Xiao et al. report the sink effect is
-# saturated by 4 tokens; a larger sink buys nothing and eats the budget.
+# StreamingLLM's standard sink width; Xiao et al. report saturation by 4.
 DEFAULT_SINK = 4
 DEFAULT_SEED = 42
 SHIFT_ROPE = True
 
-# rope types that build inv_freq once. dynamic/longrope recompute it from the
-# sequence length mid-generation, which breaks rotation composition.
+# rope types that build inv_freq once. dynamic/longrope recompute it
+# mid-generation, which breaks rotation composition.
 STATIC_ROPE = ("default", "linear", "yarn", "llama3")
 
-# Contiguous keep-sets tolerate a padded batch; the others do not. MEASURED,
-# notebook 21 cell 6.
-POLICIES = ("none", "recency", "sink_recent", "random")
+POLICIES = ("none", "recency", "sink_recent", "random", "attention")
 CONTIGUOUS = ("none", "recency")
+NEEDS_EAGER = ("attention",)
 
 NO_EVICTION = 1.0
 
@@ -112,13 +116,13 @@ def budget_for(prefill_len: int, keep_ratio: float, policy: str,
 
 def keep_indices(policy: str, seq_len: int, budget: int,
                  sink: int = DEFAULT_SINK,
-                 rng: Optional[random.Random] = None) -> List[int]:
+                 rng: Optional[random.Random] = None,
+                 scores: Optional[Sequence[float]] = None) -> List[int]:
     """Which positions of a `seq_len` block survive. Pure python, no torch.
 
-    Returns SORTED indices into the current block. Length is
-    min(seq_len, budget) — every policy spends the same budget, which is what
-    makes the position-vs-attention contrast a mechanism test rather than a
-    budget test.
+    SORTED indices into the current block, length min(seq_len, budget). Every
+    policy spends the same budget, which is what makes the position-vs-attention
+    contrast a mechanism test rather than a budget test.
     """
     if seq_len <= budget:
         return list(range(seq_len))
@@ -137,6 +141,17 @@ def keep_indices(policy: str, seq_len: int, budget: int,
         if rng is None:
             raise ValueError("policy 'random' needs a seeded rng")
         return sorted(rng.sample(range(seq_len - 1), budget - 1)) + [seq_len - 1]
+
+    if policy == "attention":
+        if scores is None or len(scores) != seq_len:
+            raise ValueError(
+                f"policy 'attention' needs {seq_len} scores, got "
+                f"{None if scores is None else len(scores)}")
+        # Newest is force-kept for the same reason as random, and because it
+        # has never been scored (the hook has not fired for it yet).
+        pool = sorted(range(seq_len - 1),
+                      key=lambda j: (-scores[j], -j))   # ties -> more recent
+        return sorted(pool[:budget - 1]) + [seq_len - 1]
 
     raise ValueError(f"unknown policy {policy!r}; expected {list(POLICIES)}")
 
@@ -157,6 +172,8 @@ def label(policy: str = "none", keep_ratio: float = NO_EVICTION,
         name = f"evict_sink{sink}_{_rtag(keep_ratio)}"
     elif policy == "random":
         name = f"evict_random_{_rtag(keep_ratio)}_s{seed}"
+    elif policy == "attention":
+        name = f"evict_attn_{_rtag(keep_ratio)}"
     else:
         raise ValueError(f"unknown policy {policy!r}")
     if not shift_rope and policy not in CONTIGUOUS:
@@ -179,8 +196,16 @@ def describe(policy: str = "none", keep_ratio: float = NO_EVICTION,
         "seed": seed if (evicting and policy == "random") else None,
         "shift_rope": shift_rope if (evicting and policy not in CONTIGUOUS) else None,
         "contiguous": policy in CONTIGUOUS,
+        "needs_eager": policy in NEEDS_EAGER,
         "max_batch_size": 1 if (evicting and policy not in CONTIGUOUS) else None,
+        "first_evict": "decode" if (evicting and policy == "attention")
+                       else ("prefill" if evicting else None),
     }
+    if evicting and policy == "attention":
+        rec["gqa_reduce"] = "mean"
+        rec["head_reduce"] = "mean"
+        rec["accumulate"] = "mean_over_steps"
+        rec["keep_set_scope"] = "layer"
     if prompt_tokens is not None:
         b = budget_for(prompt_tokens, keep_ratio if evicting else NO_EVICTION,
                        policy, sink)
@@ -197,10 +222,9 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
     class EvictLayer(DynamicLayer):
         """Store a subset, return the full states.
 
-        This is DynamicSlidingWindowLayer's contract and it is not optional.
-        Returning the truncated states would change the hidden states of every
-        position in the prefill forward, which is a different computation, not
-        an evicted cache. Eviction affects what the DECODE steps carry.
+        DynamicSlidingWindowLayer's contract, and not optional: returning the
+        truncated states would change the hidden states of every prefill
+        position, which is a different computation, not an evicted cache.
         """
 
         is_sliding = False
@@ -214,18 +238,26 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
             self._rope = rope
             self.budget = None          # fixed at first update, from prefill
             self.cumulative_length = 0
+            self.n_updates = 0
             self.evicted = 0
             self.rotations = 0
             self.phase = None           # position each stored key is rotated to
+            self.scores = None          # running SUM of per-step mean mass
+            self.n_obs = None           # steps each stored key was observed
+            self._last_keep = None      # full-block indices retained, for the hook
             self._rng = random.Random(seed * 1000 + layer_idx)
 
         def reset(self):
             super().reset()
             self.budget = None
             self.cumulative_length = 0
+            self.n_updates = 0
             self.evicted = 0
             self.rotations = 0
             self.phase = None
+            self.scores = None
+            self.n_obs = None
+            self._last_keep = None
             self._rng = random.Random(seed * 1000 + layer_idx)
 
         def _rotate(self, keys, delta):
@@ -236,11 +268,21 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
             sin = emb.sin().to(keys.dtype)[None, None, :, :]
             return keys * cos + rotate_half(keys) * sin
 
+        def observe(self, mass) -> None:
+            """Called by the scorer hook with per-key mass over the FULL block."""
+            if self._last_keep is None:
+                return
+            self.scores = self.scores + mass.to(self.scores.device
+                                                ).index_select(0, self._last_keep)
+            self.n_obs = self.n_obs + 1
+
         def update(self, key_states, value_states, cache_kwargs=None):
             if not self.is_initialized:
                 self.lazy_initialization(key_states, value_states)
-                self.phase = torch.empty(0, dtype=torch.long,
-                                         device=key_states.device)
+                dev = key_states.device
+                self.phase = torch.empty(0, dtype=torch.long, device=dev)
+                self.scores = torch.zeros(0, dtype=torch.float32, device=dev)
+                self.n_obs = torch.zeros(0, dtype=torch.float32, device=dev)
 
             pos = (cache_kwargs or {}).get("cache_position")
             if pos is None:
@@ -254,25 +296,43 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
                 self.budget = budget_for(n_new, self.keep_ratio, self.policy,
                                          self.sink)
             self.cumulative_length += n_new
+            self.n_updates += 1
 
             full_k = torch.cat([self.keys, key_states], dim=-2)
             full_v = torch.cat([self.values, value_states], dim=-2)
             full_phase = torch.cat([self.phase, pos.to(self.phase.device)])
+            z = torch.zeros(n_new, dtype=torch.float32, device=self.scores.device)
+            full_scores = torch.cat([self.scores, z])
+            full_nobs = torch.cat([self.n_obs, z])
             seq_len = full_k.shape[-2]
 
-            if seq_len <= self.budget:
+            # The attention policy has no scores until the hook has fired, and
+            # the hook fires after the update it would inform. Prefill keeps
+            # everything; eviction begins at the first decode step.
+            defer = self.policy == "attention" and self.n_updates == 1
+
+            if seq_len <= self.budget or defer:
                 self.keys, self.values, self.phase = full_k, full_v, full_phase
+                self.scores, self.n_obs = full_scores, full_nobs
+                self._last_keep = torch.arange(seq_len, device=full_k.device)
                 return full_k, full_v
 
+            sc = None
+            if self.policy == "attention":
+                sc = (full_scores / full_nobs.clamp(min=1.0)).tolist()
             keep = torch.tensor(
                 keep_indices(self.policy, seq_len, self.budget, self.sink,
-                             self._rng),
+                             self._rng, sc),
                 dtype=torch.long, device=full_k.device)
             self.evicted += seq_len - keep.numel()
+            self._last_keep = keep
 
             kept_k = full_k.index_select(-2, keep)
             kept_v = full_v.index_select(-2, keep)
-            kept_phase = full_phase.index_select(0, keep.to(full_phase.device))
+            k_cpu = keep.to(full_phase.device)
+            kept_phase = full_phase.index_select(0, k_cpu)
+            self.scores = full_scores.index_select(0, keep.to(self.scores.device))
+            self.n_obs = full_nobs.index_select(0, keep.to(self.n_obs.device))
 
             # Pack contiguously backwards from the newest token, which keeps
             # its true position. Recency already satisfies this, so its delta
@@ -312,6 +372,64 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
     return EvictLayer()
 
 
+@contextlib.contextmanager
+def attention_scoring(model, cache, n_kv_heads: Optional[int] = None):
+    """Hook layers[i].self_attn so each EvictLayer sees its attention mass.
+
+    A no-op for non-attention policies and for cache=None, so callers can wrap
+    every generate() call unconditionally.
+    """
+    import torch
+
+    if cache is None or getattr(cache.layers[0], "policy", None) != "attention":
+        yield
+        return
+
+    if model.config._attn_implementation != "eager":
+        raise RuntimeError(
+            f"attention scoring needs attn_implementation='eager'; the model "
+            f"resolved to {model.config._attn_implementation!r}. Under sdpa "
+            f"attn_weights is None — there is nothing to hook.")
+
+    n_kv = n_kv_heads or model.config.num_key_value_heads
+
+    def make_hook(layer):
+        def hook(module, args, out):
+            w = out[1] if isinstance(out, tuple) and len(out) > 1 else None
+            if w is None:
+                raise RuntimeError(
+                    "self_attn returned no attention weights. Under sdpa this "
+                    "is expected; eager is required for the attention policy.")
+            if w.shape[0] != 1:
+                raise RuntimeError(
+                    f"attention scoring assumes batch 1, got {w.shape[0]}. "
+                    "Padded rows would misalign the mass with the keep-set.")
+            w = w[0].float()                              # [H, q, kv]
+            H, q, kv = w.shape
+            w = w.view(n_kv, H // n_kv, q, kv).mean(dim=1)  # GQA mean
+            w = w.mean(dim=0)                               # head mean -> [q, kv]
+            total = w.sum(dim=0)                            # [kv]
+            # Key j is visible to queries j..S-1 at prefill (q == kv) and to
+            # the single query at decode. Dividing by the visible count stops
+            # early keys scoring high purely for being early.
+            if q == kv:
+                seen = torch.arange(kv, 0, -1, dtype=total.dtype,
+                                    device=total.device)
+            else:
+                seen = torch.full((kv,), float(q), dtype=total.dtype,
+                                  device=total.device)
+            layer.observe(total / seen)
+        return hook
+
+    handles = [blk.self_attn.register_forward_hook(make_hook(lay))
+               for blk, lay in zip(model.model.layers, cache.layers)]
+    try:
+        yield
+    finally:
+        for h in handles:
+            h.remove()
+
+
 def make_cache(model=None, policy: str = "none",
                keep_ratio: float = NO_EVICTION, sink: int = DEFAULT_SINK,
                seed: int = DEFAULT_SEED, shift_rope: bool = SHIFT_ROPE,
@@ -321,8 +439,7 @@ def make_cache(model=None, policy: str = "none",
 
     policy='none' or keep_ratio=1.0 returns None, so
     `generate(**enc, past_key_values=None)` is byte-identical to the Phase 1
-    path: no cache object is constructed and the fp16 DynamicCache applies.
-    keep_ratio 1.0 is knobs.yaml's precise baseline for this knob.
+    path. keep_ratio 1.0 is knobs.yaml's precise baseline for this knob.
 
     A fresh object every call is mandatory for a stronger reason than knob 3's:
     a Cache carries the previous batch's KEYS, not just a config dict. Reuse
@@ -355,6 +472,13 @@ def make_cache(model=None, policy: str = "none",
             "the pre-registered headline. Pass allow_naive=True to run the "
             "ablation deliberately.")
 
+    if policy in NEEDS_EAGER and model.config._attn_implementation != "eager":
+        raise RuntimeError(
+            f"policy {policy!r} reads attention weights, which are None under "
+            f"{model.config._attn_implementation!r}. Call "
+            f"model.set_attn_implementation('eager') first. NOTE: eager NaNs "
+            f"under left padding (notebook 23), so batch must stay at 1.")
+
     rp = getattr(model.config, "rope_parameters", None) or {}
     rope_type = rp.get("rope_type", "default")
     if rope_type not in STATIC_ROPE:
@@ -381,49 +505,53 @@ def make_cache(model=None, policy: str = "none",
 
 def selftest() -> None:
     """Cheap invariants. No torch, no GPU."""
-    # budget is a fraction of the PREFILL length, floored above the sink
     assert budget_for(744, 1.0, "recency") == 744
     assert budget_for(744, 0.5, "recency") == 372
     assert budget_for(744, 0.25, "sink_recent") == 186
     assert budget_for(10, 0.25, "sink_recent", sink=4) == 5    # sink+1 floor
-    assert budget_for(10, 0.25, "recency") == 3
     assert budget_for(344, 0.75, "recency") == 258             # shortest prompt
     assert budget_for(1524, 0.75, "recency") == 1143           # longest prompt
 
-    assert keep_indices("recency", 10, 20) == list(range(10))
     assert keep_indices("recency", 12, 6) == [6, 7, 8, 9, 10, 11]
     assert keep_indices("sink_recent", 12, 6, sink=2) == [0, 1, 8, 9, 10, 11]
-
     r = keep_indices("random", 12, 6, rng=random.Random(0))
-    assert len(r) == 6 and r == sorted(r) and r[-1] == 11 and len(set(r)) == 6
+    assert len(r) == 6 and r == sorted(r) and r[-1] == 11
+
+    # attention: top budget-1 by score, newest force-kept regardless of score
+    sc = [0.9, 0.1, 0.8, 0.2, 0.7, 0.0]
+    assert keep_indices("attention", 6, 3, scores=sc) == [0, 2, 5]
+    assert keep_indices("attention", 6, 2, scores=sc) == [0, 5]
+    # ties break toward the more recent key
+    assert keep_indices("attention", 5, 3, scores=[1.0, 1.0, 1.0, 0.0, 0.0]) \
+           == [1, 2, 4]
 
     # Every policy spends the same budget — the matched-budget invariant.
     for p, kw in (("recency", {}), ("sink_recent", {"sink": 2}),
-                  ("random", {"rng": random.Random(1)})):
+                  ("random", {"rng": random.Random(1)}),
+                  ("attention", {"scores": [i / 40 for i in range(40)]})):
         assert len(keep_indices(p, 40, 8, **kw)) == 8, p
 
-    assert keep_indices("random", 40, 8, rng=random.Random(7)) == \
-           keep_indices("random", 40, 8, rng=random.Random(7))
-
     assert label() == "evict_none"
-    assert label("recency", 1.0) == "evict_none"          # yaml's baseline
+    assert label("recency", 1.0) == "evict_none"
     assert label("recency", 0.5) == "evict_recency_r050"
     assert label("sink_recent", 0.75) == "evict_sink4_r075"
     assert label("random", 0.25) == "evict_random_r025_s42"
-    assert label("sink_recent", 0.5, shift_rope=False) == "evict_sink4_r050_naive"
-    # Shifting is meaningless for a contiguous policy, so it never tags one.
+    assert label("attention", 0.5) == "evict_attn_r050"
+    assert label("attention", 0.5, shift_rope=False) == "evict_attn_r050_naive"
     assert label("recency", 0.5, shift_rope=False) == "evict_recency_r050"
 
-    d = describe("recency", 0.5, prompt_tokens=744)
-    assert d["budget_at_prompt"] == 372
-    assert d["decode_cache_bytes"] == 372 * 36 * 1024
+    d = describe("attention", 0.5, prompt_tokens=744)
+    assert d["budget_at_prompt"] == 372 and d["needs_eager"] is True
+    assert d["first_evict"] == "decode" and d["keep_set_scope"] == "layer"
+    assert describe("recency", 0.5)["first_evict"] == "prefill"
     assert describe("recency", 1.0)["policy"] == "none"
     assert describe("sink_recent", 0.5)["max_batch_size"] == 1
-    assert describe("recency", 0.5)["max_batch_size"] is None
 
     for bad in (lambda: make_cache(policy="oops"),
                 lambda: keep_indices("oops", 10, 5),
                 lambda: keep_indices("random", 10, 5),
+                lambda: keep_indices("attention", 10, 5),
+                lambda: keep_indices("attention", 10, 5, scores=[0.0] * 3),
                 lambda: make_cache(object(), "recency", keep_ratio=0.0),
                 lambda: make_cache(object(), "recency", keep_ratio=1.5),
                 lambda: make_cache(object(), "sink_recent", 0.5, sink=0),
