@@ -98,6 +98,7 @@ def _mode_settings(mode: str, cfg: Dict[str, Any], max_new_tokens: Optional[int]
             max_new_tokens or cfg["generation"].get("max_new_tokens_explain", 256))
 
 
+
 def run_pipeline(
     examples,
     cfg: Dict[str, Any],
@@ -111,6 +112,7 @@ def run_pipeline(
     max_new_tokens: Optional[int] = None,
     setting: str = "baseline",
     kv: Optional[Dict[str, Any]] = None,
+    evict: Optional[Dict[str, Any]] = None,
     out_csv: Optional[str] = None,
     resume: bool = True,
     progress: bool = True,
@@ -128,21 +130,32 @@ def run_pipeline(
     byte-identical to Phase 1. The spec is plain serializable params, not a
     cache object: generate() mutates the config dict it receives, so the
     mutable form is rebuilt per batch inside generate_batch.
+
+    `evict` is a KNOB 4 spec, e.g. {"policy": "sink_recent", "keep_ratio": 0.5}.
+    Non-contiguous policies REQUIRE batch_size 1 — the mask builder can only
+    describe a contiguous kv range, and under left padding a hollow keep-set
+    fails silently on the padded rows (measured, notebook 21). The attention
+    policy additionally requires attn_implementation="eager", which NaNs under
+    left padding (measured, notebook 23); this function toggles it for the run
+    and restores it afterwards, because every other knob's path assumes sdpa.
     """
     from src.retriever import embed as E
     from src.generator import model as G
     from src.generator import kv_cache as KV
+    from src.generator import eviction as EV
 
     top_k = top_k if top_k is not None else cfg["retrieval"]["top_k"]
     batch_size = batch_size or cfg["generation"]["batch_size"]
     system, max_new_tokens = _mode_settings(mode, cfg, max_new_tokens)
+
+    FROZEN = ("baseline", "baseline_explain")
 
     # Fail before generating rather than after. Writing quantized rows under
     # the "baseline" tag would contaminate the frozen Phase-1 reference, and
     # the damage is only visible once the McNemar comes back wrong.
     kv_label = KV.label(**{k: v for k, v in (kv or {}).items()
                            if k != "allow_flush"}) if kv else "kv_fp16"
-    if kv_label != "kv_fp16" and setting in ("baseline", "baseline_explain"):
+    if kv_label != "kv_fp16" and setting in FROZEN:
         raise ValueError(
             f"setting={setting!r} is a frozen Phase-1 tag but kv={kv} requests "
             f"quantization. Tag quantized runs with their own setting name "
@@ -152,11 +165,34 @@ def run_pipeline(
     # other parameter that changes what a row means without changing the
     # schema, so a mistyped setting would append knob-5 rows into the frozen
     # Phase-1 file and _writer's header check would pass.
-    if top_k != cfg["retrieval"]["top_k"] and setting in ("baseline", "baseline_explain"):
+    if top_k != cfg["retrieval"]["top_k"] and setting in FROZEN:
         raise ValueError(
             f"setting={setting!r} is a frozen Phase-1 tag but top_k={top_k} "
             f"differs from the baseline {cfg['retrieval']['top_k']}. Tag knob-5 "
             f"runs with their own setting name (e.g. 'topk_{top_k:02d}').")
+
+    # Same reasoning again, for KNOB 4.
+    ev = dict(evict or {})
+    ev_label = EV.label(**ev) if ev else "evict_none"
+    evicting = ev_label != "evict_none"
+    if evicting and setting in FROZEN:
+        raise ValueError(
+            f"setting={setting!r} is a frozen Phase-1 tag but evict={evict} "
+            f"requests cache eviction. Tag knob-4 runs with their own setting "
+            f"name (e.g. {ev_label!r}).")
+
+    # batch_size is decided HERE, so the batch guard belongs here too — even
+    # though make_cache repeats it. A knob-4 setting must not silently inherit
+    # cfg batch_size 16 and then fail one batch into a 1000-question run.
+    policy = ev.get("policy", "none")
+    if evicting and policy not in EV.CONTIGUOUS and batch_size != 1 \
+            and not ev.get("allow_padded", False):
+        raise ValueError(
+            f"policy {policy!r} builds a non-contiguous keep-set and requires "
+            f"batch_size=1, got {batch_size}. Under padding_side='left' the "
+            f"mask builder cannot describe a hollow keep-set and the padded "
+            f"rows fail SILENTLY (measured, notebook 21 cell 6). Pass "
+            f"batch_size=1 explicitly for knob-4 settings.")
 
     if embedder is None:
         embedder = E.load_embedder(cfg["models"]["embedder"])
@@ -174,13 +210,28 @@ def run_pipeline(
     if progress:
         print(f"retrieved + prompted {len(examples)} questions "
               f"in {time.time() - t0:.1f}s  [mode={mode}, "
-              f"max_new_tokens={max_new_tokens}, kv={kv_label}]")
+              f"max_new_tokens={max_new_tokens}, kv={kv_label}, "
+              f"evict={ev_label}, batch={batch_size}]")
 
     # Chunk the FULL order first, then skip complete batches. Filtering
     # examples before chunking would re-partition the survivors and change
     # batch composition, which is not reproducible across runs.
     batches = _chunks(list(range(len(examples))), batch_size)
     done = _completed_qids(out_csv, setting) if resume else set()
+
+    # ~20 progress lines regardless of batch size. At batch 1 a fixed interval
+    # of 5 would print 200 lines per setting.
+    every = max(1, len(batches) // 20)
+
+    # The attention policy reads attn_weights, which are None under sdpa. Set
+    # once per run rather than per batch, and restore afterwards: every other
+    # knob's path assumes sdpa, and eager NaNs under left padding.
+    prev_impl = generator.config._attn_implementation
+    need_eager = evicting and policy in EV.NEEDS_EAGER
+    if need_eager and prev_impl != "eager":
+        generator.set_attn_implementation("eager")
+        if progress:
+            print(f"  attn_implementation {prev_impl} -> eager for this setting")
 
     fh = w = None
     if out_csv:
@@ -195,7 +246,7 @@ def run_pipeline(
                 continue
             raw = G.generate_batch(generator, gen_tok,
                                    [prompts[i] for i in idxs], max_new_tokens,
-                                   kv=kv)
+                                   kv=kv, evict=evict)
 
             # In explain mode the prediction is an EXTRACTION from a longer
             # text. Keep the raw generation so a parse failure stays
@@ -229,12 +280,14 @@ def run_pipeline(
                     w.writerow(row)
             if fh:
                 fh.flush()   # survive a hard session kill, not just an exception
-            if progress and (bi + 1) % 5 == 0:
+            if progress and (bi + 1) % every == 0:
                 print(f"  batch {bi + 1}/{len(batches)}  "
                       f"({time.time() - t0:.0f}s elapsed)")
     finally:
         if fh:
             fh.close()
+        if generator.config._attn_implementation != prev_impl:
+            generator.set_attn_implementation(prev_impl)
 
     if progress:
         print(f"generated {len(rows)} answers in {time.time() - t0:.1f}s")
