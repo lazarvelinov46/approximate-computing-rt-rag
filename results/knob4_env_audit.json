@@ -1,0 +1,121 @@
+{
+  "transformers": "5.0.0",
+  "cache_layers": {
+    "CacheLayerMixin": [
+      "ABC"
+    ],
+    "DynamicLayer": [
+      "CacheLayerMixin"
+    ],
+    "DynamicSlidingWindowLayer": [
+      "DynamicLayer"
+    ],
+    "StaticLayer": [
+      "CacheLayerMixin"
+    ],
+    "StaticSlidingWindowLayer": [
+      "StaticLayer"
+    ],
+    "QuantizedLayer": [
+      "DynamicLayer"
+    ],
+    "QuantoQuantizedLayer": [
+      "QuantizedLayer"
+    ],
+    "HQQQuantizedLayer": [
+      "QuantizedLayer"
+    ]
+  },
+  "caches": {
+    "Cache": [
+      "object"
+    ],
+    "DynamicCache": [
+      "Cache"
+    ],
+    "StaticCache": [
+      "Cache"
+    ],
+    "QuantizedCache": [
+      "Cache"
+    ],
+    "EncoderDecoderCache": [
+      "Cache"
+    ]
+  },
+  "eviction_terms": {},
+  "sink_cache": false,
+  "cache_impls": {
+    "static": [
+      "static",
+      "offloaded_static"
+    ],
+    "dynamic": [
+      "dynamic",
+      "dynamic_full",
+      "offloaded",
+      "quantized"
+    ],
+    "deprecated": [
+      "sliding_window",
+      "hybrid",
+      "hybrid_chunked",
+      "offloaded_hybrid",
+      "offloaded_hybrid_chunked"
+    ]
+  },
+  "qwen2": {
+    "num_hidden_layers": 36,
+    "num_key_value_heads": 2,
+    "head_dim": 128,
+    "use_sliding_window": false,
+    "sliding_window": null,
+    "layer_types": [
+      "full_attention"
+    ],
+    "kv_bytes_per_token": 36864,
+    "baseline_layer_class": [
+      "DynamicLayer"
+    ]
+  },
+  "attention": {
+    "cache_kwargs": [
+      "cache_position",
+      "cos",
+      "sin"
+    ],
+    "decoder_discards_weights": true,
+    "hook_target": "model.layers[i].self_attn",
+    "eager_required": true,
+    "eager_matrix_gib_fp16_at_744": 0.264
+  },
+  "mask_probe": {
+    "full cache (control)": {
+      "runs": true,
+      "row0": true,
+      "row1": true
+    },
+    "no-op evict (budget 64)": {
+      "runs": true,
+      "row0": true,
+      "row1": true
+    },
+    "recency window (0+6)": {
+      "runs": true,
+      "row0": true,
+      "row1": true
+    },
+    "sink+recent (2+6)": {
+      "runs": true,
+      "row0": true,
+      "row1": false
+    }
+  },
+  "padding_hypothesis": {
+    "uniform_batch_noncontiguous_ok": true,
+    "mixed_batch_noncontiguous_ok": false,
+    "padded_row_ok": false,
+    "recency_ok_all": true,
+    "evicted_tokens_per_layer": 15
+  }
+}
