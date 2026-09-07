@@ -48,6 +48,22 @@ attention_scaling is NOT applied in _rotate: the stored key is already
 s.R(p).k, so R(d) unscaled gives s.R(p+d).k. Composition is exact only while
 inv_freq is fixed, so rope_type must be in STATIC_ROPE.
 
+Eviction is incremental and path-dependent
+------------------------------------------
+At steady state each decode step selects from budget+1 candidates and drops
+one; an evicted key never returns, even if its accumulated mass would later
+rank it highly. This is H2O's greedy formulation rather than a global
+re-selection, and it applies to every policy here.
+
+Provenance tracking (`origin`)
+------------------------------
+`phase` is overwritten with the packed target arange, and `_last_keep` indexes
+the CURRENT block, so neither answers "which prompt tokens survived". `origin`
+carries each stored key's original absolute position through every
+index_select. Purely diagnostic — it never touches the computation — but it is
+what turns the close-out from "attention scored higher EM" into "attention
+scored higher EM because it kept the gold span where recency dropped it".
+
 The attention policy (H2O / SnapKV family)
 ------------------------------------------
 Scores come from a forward hook on layers[i].self_attn, which receives the
@@ -69,10 +85,11 @@ Pre-registered choices, none tuned:
     would hand the policy the sink as an artifact. Each key's mass is divided
     by its visible-query count, which removes this exactly.
   PREFILL KEEPS EVERYTHING. The hook fires after the update() it would inform,
-    so no scores exist at prefill. Eviction begins at the first decode step.
-    Position policies evict at prefill; budgets match from step 1 onward and
-    eviction cannot lower peak memory either way, so the contrast holds. The
-    difference in first application is recorded, not hidden.
+    so no scores exist at prefill. Eviction begins at the first decode step,
+    which drops (prompt_len + 1 - budget) keys at once. Position policies
+    evict at prefill; budgets match from step 1 onward and eviction cannot
+    lower peak memory either way, so the contrast holds. The difference in
+    first application is recorded, not hidden.
   THE SINK IS NOT SPECIAL-CASED. If attention rediscovers it, that is a result.
 
 The hook sees attention over the FULL returned states, not the stored subset,
@@ -85,7 +102,7 @@ from __future__ import annotations
 import contextlib
 import math
 import random
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 # --- frozen study constants ----------------------------------------------
 # StreamingLLM's standard sink width; Xiao et al. report saturation by 4.
@@ -214,6 +231,30 @@ def describe(policy: str = "none", keep_ratio: float = NO_EVICTION,
     return rec
 
 
+# --- provenance helpers ---------------------------------------------------
+
+def kept_origins(cache) -> List[List[int]]:
+    """-> per-layer sorted lists of ORIGINAL absolute positions still cached."""
+    if cache is None:
+        return []
+    return [sorted(int(x) for x in lay.origin.tolist()) for lay in cache.layers]
+
+
+def span_retention(cache, start: int, end: int) -> Dict[str, Any]:
+    """What fraction of prompt tokens [start, end) survived, per layer.
+
+    `start`/`end` are token offsets into the prompt, so the caller supplies the
+    gold-passage span from prompt construction. Diagnostic only.
+    """
+    if cache is None:
+        return {"span": (start, end), "n_span": end - start, "per_layer": [],
+                "mean": 1.0, "min": 1.0, "max": 1.0}
+    n = max(end - start, 1)
+    per = [len([p for p in o if start <= p < end]) / n for o in kept_origins(cache)]
+    return {"span": (start, end), "n_span": end - start, "per_layer": per,
+            "mean": sum(per) / len(per), "min": min(per), "max": max(per)}
+
+
 def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
     import torch
     from transformers.cache_utils import DynamicLayer
@@ -242,9 +283,10 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
             self.evicted = 0
             self.rotations = 0
             self.phase = None           # position each stored key is rotated to
+            self.origin = None          # ORIGINAL position of each stored key
             self.scores = None          # running SUM of per-step mean mass
             self.n_obs = None           # steps each stored key was observed
-            self._last_keep = None      # full-block indices retained, for the hook
+            self._last_keep = None      # current-block indices kept, for the hook
             self._rng = random.Random(seed * 1000 + layer_idx)
 
         def reset(self):
@@ -255,6 +297,7 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
             self.evicted = 0
             self.rotations = 0
             self.phase = None
+            self.origin = None
             self.scores = None
             self.n_obs = None
             self._last_keep = None
@@ -281,6 +324,7 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
                 self.lazy_initialization(key_states, value_states)
                 dev = key_states.device
                 self.phase = torch.empty(0, dtype=torch.long, device=dev)
+                self.origin = torch.empty(0, dtype=torch.long, device=dev)
                 self.scores = torch.zeros(0, dtype=torch.float32, device=dev)
                 self.n_obs = torch.zeros(0, dtype=torch.float32, device=dev)
 
@@ -300,7 +344,9 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
 
             full_k = torch.cat([self.keys, key_states], dim=-2)
             full_v = torch.cat([self.values, value_states], dim=-2)
-            full_phase = torch.cat([self.phase, pos.to(self.phase.device)])
+            p = pos.to(self.phase.device)
+            full_phase = torch.cat([self.phase, p])
+            full_origin = torch.cat([self.origin, p])
             z = torch.zeros(n_new, dtype=torch.float32, device=self.scores.device)
             full_scores = torch.cat([self.scores, z])
             full_nobs = torch.cat([self.n_obs, z])
@@ -312,7 +358,8 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
             defer = self.policy == "attention" and self.n_updates == 1
 
             if seq_len <= self.budget or defer:
-                self.keys, self.values, self.phase = full_k, full_v, full_phase
+                self.keys, self.values = full_k, full_v
+                self.phase, self.origin = full_phase, full_origin
                 self.scores, self.n_obs = full_scores, full_nobs
                 self._last_keep = torch.arange(seq_len, device=full_k.device)
                 return full_k, full_v
@@ -329,8 +376,9 @@ def _build_layer(policy, keep_ratio, sink, seed, shift_rope, rope, layer_idx):
 
             kept_k = full_k.index_select(-2, keep)
             kept_v = full_v.index_select(-2, keep)
-            k_cpu = keep.to(full_phase.device)
-            kept_phase = full_phase.index_select(0, k_cpu)
+            k_meta = keep.to(full_phase.device)
+            kept_phase = full_phase.index_select(0, k_meta)
+            self.origin = full_origin.index_select(0, k_meta)
             self.scores = full_scores.index_select(0, keep.to(self.scores.device))
             self.n_obs = full_nobs.index_select(0, keep.to(self.n_obs.device))
 
@@ -404,7 +452,7 @@ def attention_scoring(model, cache, n_kv_heads: Optional[int] = None):
                 raise RuntimeError(
                     f"attention scoring assumes batch 1, got {w.shape[0]}. "
                     "Padded rows would misalign the mass with the keep-set.")
-            w = w[0].float()                              # [H, q, kv]
+            w = w[0].float()                                # [H, q, kv]
             H, q, kv = w.shape
             w = w.view(n_kv, H // n_kv, q, kv).mean(dim=1)  # GQA mean
             w = w.mean(dim=0)                               # head mean -> [q, kv]
@@ -517,11 +565,9 @@ def selftest() -> None:
     r = keep_indices("random", 12, 6, rng=random.Random(0))
     assert len(r) == 6 and r == sorted(r) and r[-1] == 11
 
-    # attention: top budget-1 by score, newest force-kept regardless of score
     sc = [0.9, 0.1, 0.8, 0.2, 0.7, 0.0]
     assert keep_indices("attention", 6, 3, scores=sc) == [0, 2, 5]
     assert keep_indices("attention", 6, 2, scores=sc) == [0, 5]
-    # ties break toward the more recent key
     assert keep_indices("attention", 5, 3, scores=[1.0, 1.0, 1.0, 0.0, 0.0]) \
            == [1, 2, 4]
 
@@ -546,6 +592,10 @@ def selftest() -> None:
     assert describe("recency", 0.5)["first_evict"] == "prefill"
     assert describe("recency", 1.0)["policy"] == "none"
     assert describe("sink_recent", 0.5)["max_batch_size"] == 1
+
+    # provenance helpers are inert on the baseline path
+    assert kept_origins(None) == []
+    assert span_retention(None, 0, 10)["mean"] == 1.0
 
     for bad in (lambda: make_cache(policy="oops"),
                 lambda: keep_indices("oops", 10, 5),
