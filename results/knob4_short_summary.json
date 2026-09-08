@@ -1,0 +1,576 @@
+{
+  "knob": 4,
+  "name": "KV cache eviction",
+  "regime": 1,
+  "mode": "short",
+  "n": 1000,
+  "reference": "evict_none_b1",
+  "transformers": "5.0.0",
+  "batch_size": 1,
+  "frozen_constants": {
+    "sink": 4,
+    "seed": 42,
+    "shift_rope": true,
+    "top_k": 5,
+    "max_new_tokens": 32
+  },
+  "grid": [
+    {
+      "setting": "evict_none_b1",
+      "policy": "none",
+      "keep_ratio": 1.0
+    },
+    {
+      "setting": "evict_recency_r075",
+      "policy": "recency",
+      "keep_ratio": 0.75
+    },
+    {
+      "setting": "evict_recency_r050",
+      "policy": "recency",
+      "keep_ratio": 0.5
+    },
+    {
+      "setting": "evict_recency_r025",
+      "policy": "recency",
+      "keep_ratio": 0.25
+    },
+    {
+      "setting": "evict_sink4_r075",
+      "policy": "sink_recent",
+      "keep_ratio": 0.75
+    },
+    {
+      "setting": "evict_sink4_r050",
+      "policy": "sink_recent",
+      "keep_ratio": 0.5
+    },
+    {
+      "setting": "evict_sink4_r025",
+      "policy": "sink_recent",
+      "keep_ratio": 0.25
+    },
+    {
+      "setting": "evict_random_r075_s42",
+      "policy": "random",
+      "keep_ratio": 0.75
+    },
+    {
+      "setting": "evict_random_r050_s42",
+      "policy": "random",
+      "keep_ratio": 0.5
+    },
+    {
+      "setting": "evict_random_r025_s42",
+      "policy": "random",
+      "keep_ratio": 0.25
+    },
+    {
+      "setting": "evict_attn_r075",
+      "policy": "attention",
+      "keep_ratio": 0.75
+    },
+    {
+      "setting": "evict_attn_r050",
+      "policy": "attention",
+      "keep_ratio": 0.5
+    },
+    {
+      "setting": "evict_attn_r025",
+      "policy": "attention",
+      "keep_ratio": 0.25
+    },
+    {
+      "setting": "evict_sink4_r050_naive",
+      "policy": "sink_recent_naive",
+      "keep_ratio": 0.5
+    }
+  ],
+  "amendments": [
+    "batch_size 1 for knob 4 against the frozen 16. Motivated by the padding measurement (notebook 21 cell 6) before any eviction EM existed. Verified: evict_none_b1 vs frozen baseline b=0 c=1 d=1, 998/1000 predictions string-identical, EM 0.3920 vs 0.3910.",
+    "RoPE position-shifting ON for all non-contiguous policies, with evict_sink4_r050_naive as a single-budget ablation.",
+    "GQA aggregation MEAN over the 8 query heads per KV head, plus a forced MEAN over the 2 KV heads (index_select on the sequence dim applies across heads, so the keep-set is per-layer). Pre-registered, not tuned.",
+    "Attention policy defers eviction to the first decode step: the scoring hook fires after the update() it would inform, so no scores exist at prefill. Position policies evict at prefill. Budgets match from step 1.",
+    "ADDED random and attention at keep_ratio 0.75 and 0.25. The original list gave position policies three ratios and control policies one, so the headline claims each rested on a single budget. Oversight in the setting list, not a design decision; r=0.50 results were already seen when the gap was noticed. Adds x-axis coverage only \u2014 same metric, same acceptance criterion, same reference. It changed the conclusion: random reverses from best policy at r=0.75 to worst at r=0.25."
+  ],
+  "predictions": {
+    "efficiency_null": {
+      "registered": "Eviction imposes a measurable quality cost against an efficiency benefit that does not materialise at this scale, because eviction acts after prefill and peak memory occurs during prefill.",
+      "outcome": "CONFIRMED (smoke, notebook 26): peak memory 6.11-6.15 GiB across all settings against 5.87 GiB of weights. Evicting 75% of the cache moved peak by 0.02 GiB (0.3%)."
+    },
+    "rope_shift_small": {
+      "registered": "RoPE position-shifting matters LESS at ~744 tokens than in the long-context literature, where holes span millions.",
+      "outcome": "CONFIRMED. Paired shifted vs naive: zero discordant, identical marginals (EM 0.2820 both). 32/1000 predictions changed, none changed correctness."
+    },
+    "attention_beats_position": {
+      "registered": "Attention-based eviction beats position-based at equal keep_ratio, because gold evidence sits mid-prompt where recency drops it and sink+recent hollows it out.",
+      "outcome": "CONFIRMED at every keep_ratio (see attn_vs_sink_* tests)."
+    },
+    "attention_beats_random": {
+      "registered": "Implied by the above: content-aware selection should separate from a coin flip.",
+      "outcome": "SEE mcnemar. At r=0.50 the separation was an adequately powered NULL (b=58 c=41 d=99 p=0.1074) \u2014 recorded as a falsification when r=0.50 was the only budget measured. The amendment adding r=0.75 and r=0.25 changed the picture: random is BEST at r=0.75 (0.378) and COLLAPSES at r=0.25 (0.087, below every other policy). The separation is budget-dependent, not absent. Final wording set from the r=0.25 test rather than from r=0.50 alone."
+    }
+  },
+  "mcnemar": {
+    "ref_vs_evict_recency_r075": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_recency_r075",
+      "b": 170,
+      "c": 8,
+      "discordant": 178,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_recency_r050": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_recency_r050",
+      "b": 237,
+      "c": 6,
+      "discordant": 243,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_recency_r025": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_recency_r025",
+      "b": 276,
+      "c": 5,
+      "discordant": 281,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_sink4_r075": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_sink4_r075",
+      "b": 44,
+      "c": 10,
+      "discordant": 54,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_sink4_r050": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_sink4_r050",
+      "b": 123,
+      "c": 13,
+      "discordant": 136,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_sink4_r025": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_sink4_r025",
+      "b": 160,
+      "c": 16,
+      "discordant": 176,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_random_r075_s42": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_random_r075_s42",
+      "b": 25,
+      "c": 11,
+      "discordant": 36,
+      "p": 0.0288,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_random_r050_s42": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_random_r050_s42",
+      "b": 88,
+      "c": 16,
+      "discordant": 104,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_random_r025_s42": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_random_r025_s42",
+      "b": 310,
+      "c": 5,
+      "discordant": 315,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_attn_r075": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_attn_r075",
+      "b": 26,
+      "c": 4,
+      "discordant": 30,
+      "p": 0.0001,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_attn_r050": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_attn_r050",
+      "b": 63,
+      "c": 8,
+      "discordant": 71,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_attn_r025": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_attn_r025",
+      "b": 101,
+      "c": 8,
+      "discordant": 109,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "ref_vs_evict_sink4_r050_naive": {
+      "a": "evict_none_b1",
+      "b_setting": "evict_sink4_r050_naive",
+      "b": 123,
+      "c": 13,
+      "discordant": 136,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_recency_r075_vs_random": {
+      "a": "evict_recency_r075",
+      "b_setting": "evict_random_r075_s42",
+      "b": 9,
+      "c": 157,
+      "discordant": 166,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_sink4_r075_vs_random": {
+      "a": "evict_sink4_r075",
+      "b_setting": "evict_random_r075_s42",
+      "b": 28,
+      "c": 48,
+      "discordant": 76,
+      "p": 0.0286,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_attn_r075_vs_random": {
+      "a": "evict_attn_r075",
+      "b_setting": "evict_random_r075_s42",
+      "b": 22,
+      "c": 30,
+      "discordant": 52,
+      "p": 0.3317,
+      "verdict": "null, adequately powered"
+    },
+    "evict_recency_r050_vs_random": {
+      "a": "evict_recency_r050",
+      "b_setting": "evict_random_r050_s42",
+      "b": 20,
+      "c": 179,
+      "discordant": 199,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_sink4_r050_vs_random": {
+      "a": "evict_sink4_r050",
+      "b_setting": "evict_random_r050_s42",
+      "b": 51,
+      "c": 89,
+      "discordant": 140,
+      "p": 0.0017,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_attn_r050_vs_random": {
+      "a": "evict_attn_r050",
+      "b_setting": "evict_random_r050_s42",
+      "b": 58,
+      "c": 41,
+      "discordant": 99,
+      "p": 0.1074,
+      "verdict": "null, adequately powered"
+    },
+    "evict_recency_r025_vs_random": {
+      "a": "evict_recency_r025",
+      "b_setting": "evict_random_r025_s42",
+      "b": 84,
+      "c": 50,
+      "discordant": 134,
+      "p": 0.0042,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_sink4_r025_vs_random": {
+      "a": "evict_sink4_r025",
+      "b_setting": "evict_random_r025_s42",
+      "b": 189,
+      "c": 28,
+      "discordant": 217,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "evict_attn_r025_vs_random": {
+      "a": "evict_attn_r025",
+      "b_setting": "evict_random_r025_s42",
+      "b": 226,
+      "c": 14,
+      "discordant": 240,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "attn_vs_sink_r075": {
+      "a": "evict_attn_r075",
+      "b_setting": "evict_sink4_r075",
+      "b": 36,
+      "c": 24,
+      "discordant": 60,
+      "p": 0.155,
+      "verdict": "null, adequately powered"
+    },
+    "attn_vs_sink_r050": {
+      "a": "evict_attn_r050",
+      "b_setting": "evict_sink4_r050",
+      "b": 83,
+      "c": 28,
+      "discordant": 111,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "attn_vs_sink_r025": {
+      "a": "evict_attn_r025",
+      "b_setting": "evict_sink4_r025",
+      "b": 89,
+      "c": 38,
+      "discordant": 127,
+      "p": 0.0,
+      "verdict": "SIGNIFICANT"
+    },
+    "shift_vs_naive": {
+      "a": "evict_sink4_r050",
+      "b_setting": "evict_sink4_r050_naive",
+      "b": 0,
+      "c": 0,
+      "discordant": 0,
+      "p": 1.0,
+      "verdict": "null (zero-discordant carve-out)"
+    }
+  },
+  "settings": [
+    {
+      "setting": "evict_none_b1",
+      "policy": "none",
+      "keep_ratio": 1.0,
+      "budget_mean": 744.0,
+      "em": 0.392,
+      "f1": 0.5078,
+      "em_complete": 0.4427,
+      "em_incomplete": 0.1296,
+      "em_bridge": 0.3601,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.009,
+      "decode_mean": 3.44,
+      "decode_p99": 10.0,
+      "trunc_frac": 0.0
+    },
+    {
+      "setting": "evict_recency_r075",
+      "policy": "recency",
+      "keep_ratio": 0.75,
+      "budget_mean": 558.4,
+      "em": 0.23,
+      "f1": 0.3545,
+      "em_complete": 0.2661,
+      "em_incomplete": 0.0432,
+      "em_bridge": 0.1869,
+      "em_comparison": 0.4115,
+      "abstain_rate": 0.0,
+      "decode_mean": 5.45,
+      "decode_p99": 32.0,
+      "trunc_frac": 0.072
+    },
+    {
+      "setting": "evict_recency_r050",
+      "policy": "recency",
+      "keep_ratio": 0.5,
+      "budget_mean": 372.3,
+      "em": 0.161,
+      "f1": 0.2786,
+      "em_complete": 0.1885,
+      "em_incomplete": 0.0185,
+      "em_bridge": 0.104,
+      "em_comparison": 0.401,
+      "abstain_rate": 0.001,
+      "decode_mean": 6.03,
+      "decode_p99": 32.0,
+      "trunc_frac": 0.106
+    },
+    {
+      "setting": "evict_recency_r025",
+      "policy": "recency",
+      "keep_ratio": 0.25,
+      "budget_mean": 186.4,
+      "em": 0.121,
+      "f1": 0.2298,
+      "em_complete": 0.142,
+      "em_incomplete": 0.0123,
+      "em_bridge": 0.0569,
+      "em_comparison": 0.3906,
+      "abstain_rate": 0.001,
+      "decode_mean": 6.15,
+      "decode_p99": 32.0,
+      "trunc_frac": 0.105
+    },
+    {
+      "setting": "evict_sink4_r075",
+      "policy": "sink_recent",
+      "keep_ratio": 0.75,
+      "budget_mean": 558.4,
+      "em": 0.358,
+      "f1": 0.473,
+      "em_complete": 0.4093,
+      "em_incomplete": 0.0926,
+      "em_bridge": 0.3168,
+      "em_comparison": 0.5312,
+      "abstain_rate": 0.008,
+      "decode_mean": 3.76,
+      "decode_p99": 22.0,
+      "trunc_frac": 0.007
+    },
+    {
+      "setting": "evict_sink4_r050",
+      "policy": "sink_recent",
+      "keep_ratio": 0.5,
+      "budget_mean": 372.3,
+      "em": 0.282,
+      "f1": 0.3883,
+      "em_complete": 0.3234,
+      "em_incomplete": 0.0679,
+      "em_bridge": 0.2265,
+      "em_comparison": 0.5156,
+      "abstain_rate": 0.008,
+      "decode_mean": 3.81,
+      "decode_p99": 27.0,
+      "trunc_frac": 0.01
+    },
+    {
+      "setting": "evict_sink4_r025",
+      "policy": "sink_recent",
+      "keep_ratio": 0.25,
+      "budget_mean": 186.4,
+      "em": 0.248,
+      "f1": 0.3527,
+      "em_complete": 0.284,
+      "em_incomplete": 0.0617,
+      "em_bridge": 0.1856,
+      "em_comparison": 0.5104,
+      "abstain_rate": 0.01,
+      "decode_mean": 3.77,
+      "decode_p99": 31.0,
+      "trunc_frac": 0.011
+    },
+    {
+      "setting": "evict_random_r075_s42",
+      "policy": "random",
+      "keep_ratio": 0.75,
+      "budget_mean": 558.4,
+      "em": 0.378,
+      "f1": 0.4981,
+      "em_complete": 0.4272,
+      "em_incomplete": 0.1235,
+      "em_bridge": 0.3428,
+      "em_comparison": 0.526,
+      "abstain_rate": 0.008,
+      "decode_mean": 3.49,
+      "decode_p99": 11.0,
+      "trunc_frac": 0.0
+    },
+    {
+      "setting": "evict_random_r050_s42",
+      "policy": "random",
+      "keep_ratio": 0.5,
+      "budget_mean": 372.3,
+      "em": 0.32,
+      "f1": 0.4531,
+      "em_complete": 0.3652,
+      "em_incomplete": 0.0864,
+      "em_bridge": 0.2772,
+      "em_comparison": 0.5,
+      "abstain_rate": 0.003,
+      "decode_mean": 4.1,
+      "decode_p99": 32.0,
+      "trunc_frac": 0.021
+    },
+    {
+      "setting": "evict_random_r025_s42",
+      "policy": "random",
+      "keep_ratio": 0.25,
+      "budget_mean": 186.4,
+      "em": 0.087,
+      "f1": 0.2049,
+      "em_complete": 0.0979,
+      "em_incomplete": 0.0309,
+      "em_bridge": 0.0767,
+      "em_comparison": 0.1302,
+      "abstain_rate": 0.0,
+      "decode_mean": 17.71,
+      "decode_p99": 32.0,
+      "trunc_frac": 0.487
+    },
+    {
+      "setting": "evict_attn_r075",
+      "policy": "attention",
+      "keep_ratio": 0.75,
+      "budget_mean": 558.4,
+      "em": 0.37,
+      "f1": 0.4936,
+      "em_complete": 0.4177,
+      "em_incomplete": 0.1235,
+      "em_bridge": 0.3317,
+      "em_comparison": 0.5312,
+      "abstain_rate": 0.009,
+      "decode_mean": 3.37,
+      "decode_p99": 11.0,
+      "trunc_frac": 0.0
+    },
+    {
+      "setting": "evict_attn_r050",
+      "policy": "attention",
+      "keep_ratio": 0.5,
+      "budget_mean": 372.3,
+      "em": 0.337,
+      "f1": 0.4659,
+      "em_complete": 0.3807,
+      "em_incomplete": 0.1111,
+      "em_bridge": 0.2933,
+      "em_comparison": 0.5208,
+      "abstain_rate": 0.009,
+      "decode_mean": 3.4,
+      "decode_p99": 11.0,
+      "trunc_frac": 0.003
+    },
+    {
+      "setting": "evict_attn_r025",
+      "policy": "attention",
+      "keep_ratio": 0.25,
+      "budget_mean": 186.4,
+      "em": 0.299,
+      "f1": 0.4337,
+      "em_complete": 0.3389,
+      "em_incomplete": 0.0926,
+      "em_bridge": 0.2525,
+      "em_comparison": 0.4948,
+      "abstain_rate": 0.009,
+      "decode_mean": 3.45,
+      "decode_p99": 12.0,
+      "trunc_frac": 0.005
+    },
+    {
+      "setting": "evict_sink4_r050_naive",
+      "policy": "sink_recent_naive",
+      "keep_ratio": 0.5,
+      "budget_mean": 372.3,
+      "em": 0.282,
+      "f1": 0.3902,
+      "em_complete": 0.3234,
+      "em_incomplete": 0.0679,
+      "em_bridge": 0.2265,
+      "em_comparison": 0.5156,
+      "abstain_rate": 0.008,
+      "decode_mean": 3.86,
+      "decode_p99": 32.0,
+      "trunc_frac": 0.011
+    }
+  ]
+}
