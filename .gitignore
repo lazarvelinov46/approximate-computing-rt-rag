@@ -59,6 +59,7 @@ results/*
 !results/knob5_closeout.json
 !results/knob5_curves.png
 !results/knob4_env_audit.json
+!results/knob4_short_results.csv
 !results/figures
 figures/*
 !figures/.gitkeep
