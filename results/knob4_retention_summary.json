@@ -1,0 +1,130 @@
+{
+  "knob": 4,
+  "n": 200,
+  "regime": 1,
+  "mode": "short",
+  "plan": [
+    {
+      "policy": "recency",
+      "keep_ratio": 0.5
+    },
+    {
+      "policy": "sink_recent",
+      "keep_ratio": 0.5
+    },
+    {
+      "policy": "random",
+      "keep_ratio": 0.5
+    },
+    {
+      "policy": "attention",
+      "keep_ratio": 0.5
+    },
+    {
+      "policy": "recency",
+      "keep_ratio": 0.25
+    },
+    {
+      "policy": "sink_recent",
+      "keep_ratio": 0.25
+    },
+    {
+      "policy": "random",
+      "keep_ratio": 0.25
+    },
+    {
+      "policy": "attention",
+      "keep_ratio": 0.25
+    }
+  ],
+  "by_setting": [
+    {
+      "keep_ratio": 0.25,
+      "policy": "attention",
+      "gold": 0.0915,
+      "distractor": 0.3052,
+      "question": 0.9752,
+      "system": 0.0471,
+      "prompt_all": 0.2459,
+      "em": 0.35,
+      "decode_tokens": 3.335
+    },
+    {
+      "keep_ratio": 0.25,
+      "policy": "random",
+      "gold": 0.2303,
+      "distractor": 0.2251,
+      "question": 0.2235,
+      "system": 0.2338,
+      "prompt_all": 0.2278,
+      "em": 0.065,
+      "decode_tokens": 18.905
+    },
+    {
+      "keep_ratio": 0.25,
+      "policy": "recency",
+      "gold": 0.0448,
+      "distractor": 0.3308,
+      "question": 1.0,
+      "system": 0.0,
+      "prompt_all": 0.2402,
+      "em": 0.145,
+      "decode_tokens": 7.535
+    },
+    {
+      "keep_ratio": 0.25,
+      "policy": "sink_recent",
+      "gold": 0.0454,
+      "distractor": 0.3295,
+      "question": 1.0,
+      "system": 0.0172,
+      "prompt_all": 0.245,
+      "em": 0.26,
+      "decode_tokens": 4.04
+    },
+    {
+      "keep_ratio": 0.5,
+      "policy": "attention",
+      "gold": 0.2944,
+      "distractor": 0.6067,
+      "question": 0.9916,
+      "system": 0.2064,
+      "prompt_all": 0.4958,
+      "em": 0.375,
+      "decode_tokens": 3.295
+    },
+    {
+      "keep_ratio": 0.5,
+      "policy": "random",
+      "gold": 0.4964,
+      "distractor": 0.4946,
+      "question": 0.492,
+      "system": 0.4945,
+      "prompt_all": 0.4951,
+      "em": 0.335,
+      "decode_tokens": 3.785
+    },
+    {
+      "keep_ratio": 0.5,
+      "policy": "recency",
+      "gold": 0.128,
+      "distractor": 0.7274,
+      "question": 1.0,
+      "system": 0.0,
+      "prompt_all": 0.4913,
+      "em": 0.185,
+      "decode_tokens": 6.485
+    },
+    {
+      "keep_ratio": 0.5,
+      "policy": "sink_recent",
+      "gold": 0.1286,
+      "distractor": 0.7241,
+      "question": 1.0,
+      "system": 0.0172,
+      "prompt_all": 0.4949,
+      "em": 0.275,
+      "decode_tokens": 4.02
+    }
+  ]
+}

@@ -62,6 +62,9 @@ results/*
 !results/knob4_short_results.csv
 !results/knob4_short_summary.json
 !results/knob4_short_summary.csv
+!results/knob4_retention_summary.json
+!results/knob4_retention.csv
+!results/knob4_explain_results.csv
 !results/figures
 figures/*
 !figures/.gitkeep
