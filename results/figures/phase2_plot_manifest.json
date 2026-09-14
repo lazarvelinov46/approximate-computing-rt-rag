@@ -1,0 +1,98 @@
+{
+  "figures": [
+    "knob1_search_effort"
+  ],
+  "points": [
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef5",
+      "x_axis": "ndis",
+      "x": 406.5,
+      "em": 0.275,
+      "f1": 0.3618,
+      "verdict": "SIGNIFICANT",
+      "discordant": 81,
+      "p": 0.0008
+    },
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef8",
+      "x_axis": "ndis",
+      "x": 512.1,
+      "em": 0.287,
+      "f1": 0.3813,
+      "verdict": "no paired test",
+      "discordant": null,
+      "p": null
+    },
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef16",
+      "x_axis": "ndis",
+      "x": 766.3,
+      "em": 0.292,
+      "f1": 0.3887,
+      "verdict": "no paired test",
+      "discordant": null,
+      "p": null
+    },
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef32",
+      "x_axis": "ndis",
+      "x": 1228.4,
+      "em": 0.297,
+      "f1": 0.3954,
+      "verdict": "SIGNIFICANT",
+      "discordant": 13,
+      "p": 0.0225
+    },
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_ivf_nprobe1",
+      "x_axis": "ndis",
+      "x": 91.5,
+      "em": 0.206,
+      "f1": 0.2792,
+      "verdict": "SIGNIFICANT",
+      "discordant": 178,
+      "p": 0.0
+    },
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_ivf_nprobe6",
+      "x_axis": "ndis",
+      "x": 500.0,
+      "em": 0.28,
+      "f1": 0.3716,
+      "verdict": "no paired test",
+      "discordant": null,
+      "p": null
+    },
+    {
+      "figure": "knob1_search_effort",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_ivf_nprobe48",
+      "x_axis": "ndis",
+      "x": 3577.4,
+      "em": 0.304,
+      "f1": 0.3955,
+      "verdict": "no paired test",
+      "discordant": null,
+      "p": null
+    }
+  ]
+}
