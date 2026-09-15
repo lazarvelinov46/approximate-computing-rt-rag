@@ -608,6 +608,168 @@ def fig_knob3_params(results_dir: str, out_path: str, manifest: list) -> None:
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
 
+# --- knob 4 ----------------------------------------------------------------
+
+POLICY_STYLE = {
+    "recency":     ("tab:red",    "o", "recency"),
+    "sink_recent": ("tab:orange", "s", "sink + recent"),
+    "random":      ("0.45",       "^", "random (control)"),
+    "attention":   ("tab:blue",   "D", "attention (H2O/SnapKV)"),
+}
+
+
+def fig_knob4(results_dir: str, out_path: str, manifest: list) -> None:
+    """Regime 1, batch 1. Quality vs KV-cache eviction aggressiveness.
+
+    x is keep_ratio, inverted so more aggressive reads right.
+
+    The explain arm has keep_ratio 0.50 and 0.25 only; short also has 0.75.
+    That asymmetry is left visible — no interpolation across the missing
+    ratio. sink4_r050_naive is the RoPE control, not a policy setting, so it
+    is drawn detached.
+    """
+    df = pd.read_csv(os.path.join(results_dir, "knob4_all_settings.csv"))
+    for c in ("keep_ratio", "em", "f1", "parse_given_stopped"):
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    sh = df[df["mode"] == "short"]
+    ex = df[df["mode"] == "explain"]
+    ref_s = sh[sh.policy == "none"].iloc[0]
+    ref_e = ex[ex.policy == "none"].iloc[0]
+
+    panels = ((sh, "em", "exact match", "(a) short: EM vs keep_ratio", ref_s),
+              (ex, "em", "exact match", "(b) explain: EM vs keep_ratio",
+               ref_e),
+              (sh, "f1", "F1", "(c) short: F1 vs keep_ratio", ref_s),
+              (ex, "parse_given_stopped", "parse rate | stopped cleanly",
+               "(d) explain: format adherence", ref_e))
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.4))
+    ax = axes.ravel()
+
+    for j, (src, col, ylab, title, ref) in enumerate(panels):
+        for pol, (colour, marker, label) in POLICY_STYLE.items():
+            d = src[(src.policy == pol)].dropna(subset=[col])
+            d = d.sort_values("keep_ratio", ascending=False)
+            if d.empty:
+                continue
+            ax[j].plot(d.keep_ratio, d[col], "-", marker=marker, ms=7,
+                       color=colour, lw=1.4, label=label)
+            if j in (0, 1):
+                for _, r in d.iterrows():
+                    manifest.append({"figure": "knob4_eviction", "knob": 4,
+                                     "regime": 1, "mode": r["mode"],
+                                     "setting": r.setting, "policy": pol,
+                                     "x_axis": "keep_ratio",
+                                     "x": float(r.keep_ratio),
+                                     "em": float(r.em)})
+
+        naive = src[src.policy == "sink_recent_naive"].dropna(subset=[col])
+        if not naive.empty:
+            ax[j].plot(naive.keep_ratio, naive[col], "o", ms=17, color="0.25",
+                       fillstyle="none", markeredgewidth=1.6, ls="none",
+                       zorder=2,
+                       label="sink+recent, no RoPE shift (control)")
+
+        yb = float(ref[col]) if pd.notna(ref[col]) else None
+        if yb is not None:
+            ax[j].axhline(yb, ls="--", c="k", lw=1,
+                          label=f"no eviction — {yb:.3f}")
+            ax[j].scatter([float(ref.keep_ratio)], [yb], marker="*", s=200,
+                          c="k", zorder=6)
+
+        ax[j].set_xlabel("keep_ratio (fraction of cache kept)\n"
+                         "left = more aggressive")
+        ax[j].set_ylabel(ylab)
+        ax[j].set_title(title)
+        ax[j].grid(alpha=.3)
+        ax[j].legend(fontsize=7.5, loc="best")
+
+    fig.suptitle("Knob 4 — KV-cache eviction · regime 1 · batch_size 1 · "
+                 "n=1000 · retrieval untouched", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+# --- knob 5 ----------------------------------------------------------------
+
+def fig_knob5(results_dir: str, out_path: str, manifest: list) -> None:
+    """Both regimes, short mode. Quality vs top-k.
+
+    k=20 in regime 2 ran at batch 8 (it OOMs at the frozen batch 16), so it
+    is NOT joined to the batch-16 line — it is drawn as its own pair with the
+    matched k=5 batch-8 control, which is the only setting it can legally be
+    compared against.
+    """
+    r1 = pd.read_csv(os.path.join(results_dir, "knob5_summary.csv"))
+    r2 = pd.read_csv(os.path.join(results_dir, "knob5_r2_summary.csv"))
+    cols = ("k", "batch", "em", "f1", "complete_frac", "prompt_tokens_mean")
+    for d_ in (r1, r2):
+        for c in cols:
+            if c in d_.columns:
+                d_[c] = pd.to_numeric(d_[c], errors="coerce")
+
+    r2_16 = r2[r2.batch == 16].sort_values("k")
+    r2_8 = r2[r2.batch == 8].sort_values("k")
+    b1 = r1[r1.k == 5].iloc[0]
+    b2 = r2_16[r2_16.k == 5].iloc[0]
+
+    panels = (("em", "exact match", "(a) EM vs k", "{:.3f}"),
+              ("f1", "F1", "(b) F1 vs k", "{:.3f}"),
+              ("complete_frac", "complete_frac",
+               "(c) both gold passages in the prompt", "{:.3f}"),
+              ("prompt_tokens_mean", "prompt tokens (mean)",
+               "(d) what k costs the generator", "{:.0f}"))
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.4))
+    ax = axes.ravel()
+
+    for j, (col, ylab, title, fmt) in enumerate(panels):
+        ax[j].plot(r1.sort_values("k").k, r1.sort_values("k")[col], "-",
+                   marker="o", ms=7, color=C_A, lw=1.4,
+                   label="regime 1 (per-question)")
+        ax[j].plot(r2_16.k, r2_16[col], "-", marker="s", ms=7, color=C_B,
+                   lw=1.4, label="regime 2 (pooled A1)")
+        if not r2_8.empty:
+            ax[j].plot(r2_8.k, r2_8[col], ":", marker="s", ms=8, color=C_B,
+                       lw=1.2, fillstyle="none", markeredgewidth=1.4,
+                       label="regime 2, batch 8 (k=20 + matched control)")
+        ax[j].axhline(float(b1[col]), ls="--", c=C_A, lw=1,
+                      label=f"regime 1, k=5 — {fmt.format(float(b1[col]))}")
+        ax[j].axhline(float(b2[col]), ls="--", c=C_B, lw=1,
+                      label=f"regime 2, k=5 — {fmt.format(float(b2[col]))}")
+        ax[j].set_xscale("log")
+        ticks = sorted(set(r1.k.dropna().astype(int))
+                       | set(r2.k.dropna().astype(int)))
+        ax[j].set_xticks(ticks)
+        ax[j].get_xaxis().set_major_formatter(
+            matplotlib.ticker.ScalarFormatter())
+        ax[j].minorticks_off()
+        ax[j].set_xlabel("top-k passages retrieved (log)")
+        ax[j].set_ylabel(ylab)
+        ax[j].set_title(title)
+        ax[j].grid(alpha=.3)
+        ax[j].legend(fontsize=7.5, loc="best")
+    ax[3].set_yscale("log")
+
+    for src, regime, batch in ((r1, 1, 16), (r2_16, 2, 16), (r2_8, 2, 8)):
+        for _, r in src.iterrows():
+            manifest.append({"figure": "knob5_topk", "knob": 5,
+                             "regime": regime, "batch": batch,
+                             "setting": r.get("setting", f"r1_topk_{int(r.k)}"),
+                             "x_axis": "k", "x": float(r.k),
+                             "em": float(r.em), "f1": float(r.f1),
+                             "complete_frac": float(r.complete_frac),
+                             "prompt_tokens_mean": float(r.prompt_tokens_mean)})
+
+    fig.suptitle("Knob 5 — top-k data sampling · regimes 1 and 2 · short "
+                 "mode · n=1000", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
 @dataclass
 class Input:
     path: str
@@ -747,6 +909,8 @@ FIGURES = [
     ("knob2_parameters", fig_knob2_params),
     ("knob3_kv_precision", fig_knob3),
     ("knob3_parameters", fig_knob3_params),
+    ("knob4_eviction", fig_knob4),
+    ("knob5_topk", fig_knob5),
 ]
 
 
