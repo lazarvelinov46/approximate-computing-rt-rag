@@ -304,7 +304,6 @@ def fig_knob2(results_dir: str, out_path: str, manifest: list) -> None:
     but it shows the GPU points sampling a curve rather than defining it.
     """
     df = pd.read_csv(os.path.join(results_dir, "knob2_summary.csv"))
-    dense = pd.read_csv(os.path.join(results_dir, "knob2_dense_sweep.csv"))
     base = df.loc[df.compression.astype(float).idxmin()]
 
     panels = (("em", "exact match", "(a) EM vs compression"),
@@ -317,11 +316,6 @@ def fig_knob2(results_dir: str, out_path: str, manifest: list) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.2))
     ax = axes.ravel()
 
-    ds = dense.sort_values("compression")
-    for j, col in ((2, "complete_frac"), (3, "ann_recall")):
-        if col in ds.columns:
-            ax[j].plot(ds.compression, ds[col], ".", color="0.65", ms=6,
-                       ls="none", zorder=1, label="CPU sweep (retrieval only)")
 
     for key, label, colour, marker in (("pq", "PQ (product quant.)", C_A, "o"),
                                        ("sq", "SQ (scalar quant.)", C_B, "s")):
