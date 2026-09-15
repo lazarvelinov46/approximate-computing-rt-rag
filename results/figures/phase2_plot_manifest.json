@@ -1,7 +1,10 @@
 {
   "figures": [
     "knob1_search_effort",
-    "knob1_parameters"
+    "knob1_parameters",
+    "knob2_embedding_precision",
+    "knob2_parameters",
+    "knob3_kv_precision"
   ],
   "points": [
     {
@@ -157,6 +160,267 @@
       "x": 48.0,
       "em": 0.304,
       "ndis": 3577.4
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m192",
+      "x_axis": "compression",
+      "x": 8.0,
+      "em": 0.306,
+      "f1": 0.4085,
+      "complete_frac": 0.572,
+      "ann_recall": 0.9244
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m64",
+      "x_axis": "compression",
+      "x": 24.0,
+      "em": 0.306,
+      "f1": 0.4007,
+      "complete_frac": 0.527,
+      "ann_recall": 0.7146
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m48",
+      "x_axis": "compression",
+      "x": 32.0,
+      "em": 0.286,
+      "f1": 0.3802,
+      "complete_frac": 0.498,
+      "ann_recall": 0.6564
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m32",
+      "x_axis": "compression",
+      "x": 48.0,
+      "em": 0.275,
+      "f1": 0.3635,
+      "complete_frac": 0.423,
+      "ann_recall": 0.542
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m16",
+      "x_axis": "compression",
+      "x": 96.0,
+      "em": 0.201,
+      "f1": 0.2807,
+      "complete_frac": 0.201,
+      "ann_recall": 0.3246
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_sq_8bit",
+      "x_axis": "compression",
+      "x": 4.0,
+      "em": 0.308,
+      "f1": 0.4057,
+      "complete_frac": 0.573,
+      "ann_recall": 0.9926
+    },
+    {
+      "figure": "knob2_embedding_precision",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_sq_4bit",
+      "x_axis": "compression",
+      "x": 8.0,
+      "em": 0.301,
+      "f1": 0.4007,
+      "complete_frac": 0.568,
+      "ann_recall": 0.8964
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m16",
+      "x_axis": "m",
+      "x": 16.0,
+      "em": 0.201,
+      "compression": 96.0,
+      "corpus_mib": 1.0
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m192",
+      "x_axis": "m",
+      "x": 192.0,
+      "em": 0.306,
+      "compression": 8.0,
+      "corpus_mib": 12.2
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m32",
+      "x_axis": "m",
+      "x": 32.0,
+      "em": 0.275,
+      "compression": 48.0,
+      "corpus_mib": 2.0
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m48",
+      "x_axis": "m",
+      "x": 48.0,
+      "em": 0.286,
+      "compression": 32.0,
+      "corpus_mib": 3.0
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_pq_m64",
+      "x_axis": "m",
+      "x": 64.0,
+      "em": 0.306,
+      "compression": 24.0,
+      "corpus_mib": 4.1
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_sq_4bit",
+      "x_axis": "nbits",
+      "x": 4.0,
+      "em": 0.301,
+      "compression": 8.0,
+      "corpus_mib": 12.2
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
+      "setting": "knob2_sq_8bit",
+      "x_axis": "nbits",
+      "x": 8.0,
+      "em": 0.308,
+      "compression": 4.0,
+      "corpus_mib": 24.4
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n1_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 2.0,
+      "em": 0.0
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n2_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 3.0,
+      "em": 0.046
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n3_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 5.0,
+      "em": 0.339
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n4_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 5.0,
+      "em": 0.385
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n8_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 9.0,
+      "em": 0.391
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n2_g16_r512",
+      "x_axis": "effective_bits",
+      "x": 4.0,
+      "em": 0.37
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n3_g16_r512",
+      "x_axis": "effective_bits",
+      "x": 6.0,
+      "em": 0.39
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "explain",
+      "setting": "kv_hqq_n4_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 5.0,
+      "em": 0.416
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "explain",
+      "setting": "kv_hqq_n2_g16_r512",
+      "x_axis": "effective_bits",
+      "x": 4.0,
+      "em": 0.334
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "explain",
+      "setting": "kv_hqq_n2_g32_r512",
+      "x_axis": "effective_bits",
+      "x": 3.0,
+      "em": 0.0
     }
   ]
 }
