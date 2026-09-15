@@ -129,8 +129,8 @@ POINT_STYLE = {
     NULL:          ("none",   9, 1.00),
     NULL_ZERO:     ("none",   9, 1.00),
     UNDERPOWERED:  ("bottom", 9, 1.00),
-    UNINFORMATIVE: ("none",   9, 0.55),
-    None:          ("none",   5, 0.55),   # no paired test exists
+    UNINFORMATIVE: ("none",   9, 1.00),
+    None:          ("none",   9, 0.45),   # no paired test exists
 }
 
 MARKER_LEGEND = ("markers:  d=N* significant (p<=0.05)  |  d=N ns null (d>=30)  "
@@ -141,14 +141,18 @@ C_A, C_B = "tab:blue", "tab:orange"
 
 
 def draw_point(ax, x, y, marker, colour, rec, manifest_row=None,
-               manifest=None) -> None:
+               manifest=None, tag_offset=(0, 12), tag_ha="center",
+               show_tag=True) -> None:
     fill, ms, alpha = POINT_STYLE[verdict_of(rec)]
     ax.plot([x], [y], marker=marker, color=colour, linestyle="none",
             fillstyle=fill, markersize=ms, alpha=alpha,
             markeredgewidth=1.2, zorder=5)
-    if rec:
+    if rec and show_tag:
         ax.annotate(tag_of(rec), (x, y), textcoords="offset points",
-                    xytext=(0, 10), ha="center", fontsize=7, color=colour)
+                    xytext=tag_offset, ha=tag_ha, fontsize=7.5, color=colour,
+                    zorder=7,
+                    bbox=dict(boxstyle="round,pad=0.18", fc="white",
+                              ec="none", alpha=0.8))
     if manifest is not None and manifest_row is not None:
         manifest.append({**manifest_row,
                          "verdict": verdict_of(rec) or "no paired test",
@@ -170,57 +174,122 @@ KNOB1_MC = {
 
 
 def fig_knob1(results_dir: str, out_path: str, manifest: list) -> None:
-    """Regime 2, short mode. x = distance computations per query (log).
+    """Regime 1 ... no: regime 2, short mode. Quality vs search effort.
 
-    ndis is the aggressiveness axis rather than ef/nprobe because ef and
-    nprobe are not comparable numbers across index families; ndis is the work
-    both families actually do. Decreasing ndis = more aggressive.
+    2x2: quality on top (EM, F1), retrieval below (complete_frac, ann_recall).
+    F1 gets its own panel rather than sharing EM's, because its range is
+    roughly twice EM's and sharing flattens both.
+
+    No significance encoding: McNemar is reported in the text.
     """
     df = pd.read_csv(os.path.join(results_dir, "knob1_summary.csv"))
-    with open(os.path.join(results_dir, "knob1_summary.json")) as fh:
-        mc = mc_index(json.load(fh))
-
     base = df[df["index"] == "flat"].iloc[0]
-    fig, ax = plt.subplots(1, 2, figsize=(11.5, 4.4))
+    fam = (("hnsw", "HNSW (ef)", C_A, "o"),
+           ("ivf", "IVF (nprobe)", C_B, "s"))
 
-    for family, label, colour, marker in (("hnsw", "HNSW (ef)", C_A, "o"),
-                                          ("ivf", "IVF (nprobe)", C_B, "s")):
+    panels = (("em", "exact match", "(a) EM vs search effort"),
+              ("f1", "F1", "(b) F1 vs search effort"),
+              ("complete_frac", "complete_frac",
+               "(c) both gold passages retrieved"),
+              ("ann_recall", "ANN recall",
+               "(d) agreement with exact top-5"))
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.2))
+    ax = axes.ravel()
+
+    for family, label, colour, marker in fam:
         d = df[df["index"] == family].sort_values("ndis")
-        ax[0].plot(d.ndis, d.em, "-", color=colour, lw=1.2, label=f"{label} EM")
-        ax[0].plot(d.ndis, d.f1, "--", color=colour, lw=1.0, alpha=.65,
-                   label=f"{label} F1")
+        for j, (col, _, _) in enumerate(panels):
+            ax[j].plot(d.ndis, d[col], "-", marker=marker, ms=7,
+                       color=colour, lw=1.4, label=label)
         for _, r in d.iterrows():
-            rec = mc.get(KNOB1_MC.get(r.setting, ""))
-            draw_point(ax[0], r.ndis, r.em, marker, colour, rec,
-                       {"figure": "knob1_search_effort", "knob": 1,
-                        "regime": 2, "setting": r.setting,
-                        "x_axis": "ndis", "x": float(r.ndis),
-                        "em": float(r.em), "f1": float(r.f1)}, manifest)
-        ax[1].plot(d.ndis, d.complete_frac, "-", marker=marker, ms=5,
-                   color=colour, lw=1.2, label=f"{label} complete_frac")
-        ax[1].plot(d.ndis, d.ann_recall, ":", marker=marker, ms=4, alpha=.6,
-                   color=colour, lw=1.0, label=f"{label} ANN recall")
+            manifest.append({"figure": "knob1_search_effort", "knob": 1,
+                             "regime": 2, "setting": r.setting,
+                             "x_axis": "ndis", "x": float(r.ndis),
+                             "em": float(r.em), "f1": float(r.f1),
+                             "complete_frac": float(r.complete_frac),
+                             "ann_recall": float(r.ann_recall)})
 
-    for a, yb, lab in ((ax[0], base.em, f"exact EM {base.em:.3f}"),
-                       (ax[1], base.complete_frac, "exact complete_frac")):
-        a.axhline(yb, ls="--", c="k", lw=1, label=lab)
-        a.scatter([base.ndis], [yb], marker="*", s=170, c="k", zorder=6)
-        a.set_xscale("log")
-        a.set_xlabel("distance computations per query (ndis, log) "
-                     "— left is more aggressive")
-        a.grid(alpha=.3)
-        a.legend(fontsize=7.5)
-
-    ax[0].axhline(base.f1, ls=":", c="k", lw=.8)
-    ax[0].set_ylabel("quality")
-    ax[0].set_title("(a) EM and F1 vs search effort")
-    ax[1].set_ylabel("fraction")
-    ax[1].set_title("(b) mechanism: evidence delivered to the generator")
+    for j, (col, ylab, title) in enumerate(panels):
+        # ann_recall is agreement with exact search, so exact is 1.0 by
+        # construction — a baseline line there would be a tautology, not a
+        # measurement. Every other panel gets the measured fp32 baseline.
+        if col == "ann_recall":
+            ax[j].axhline(1.0, ls="--", c="k", lw=1,
+                          label="exact (Flat) = 1.0 by definition")
+        else:
+            yb = float(base[col])
+            ax[j].axhline(yb, ls="--", c="k", lw=1,
+                          label=f"exact (Flat) — {yb:.3f}")
+            ax[j].scatter([float(base.ndis)], [yb], marker="*", s=200, c="k",
+                          zorder=6)
+        ax[j].set_xscale("log")
+        ax[j].set_xlim(55, 1.8e5)
+        ax[j].set_xlabel("distance computations per query (log)\n"
+                         "left = more aggressive")
+        ax[j].set_ylabel(ylab)
+        ax[j].set_title(title)
+        ax[j].grid(alpha=.3)
+        ax[j].legend(fontsize=8, loc="lower right")
 
     fig.suptitle("Knob 1 — retrieval search effort · regime 2 (A1, 66,581 "
                  "passages) · short mode · n=1000", fontsize=11)
-    fig.text(0.5, 0.005, MARKER_LEGEND, ha="center", fontsize=7)
-    fig.tight_layout(rect=(0, 0.035, 1, 1))
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+def fig_knob1_params(results_dir: str, out_path: str, manifest: list) -> None:
+    """The same data on the axes you configure.
+
+    ef and nprobe get separate panels: they are not commensurable, so a
+    shared x-axis would invite a comparison the numbers do not support.
+    """
+    df = pd.read_csv(os.path.join(results_dir, "knob1_summary.csv"))
+    base = df[df["index"] == "flat"].iloc[0]
+    fam = (("hnsw", "HNSW", "ef", C_A, "o"),
+           ("ivf", "IVF", "nprobe", C_B, "s"))
+    fig, ax = plt.subplots(1, 3, figsize=(14, 4.4))
+
+    for j, (family, label, pname, colour, marker) in enumerate(fam):
+        d = df[df["index"] == family].sort_values("value")
+        ax[j].plot(d.value, d.em, "-", marker=marker, ms=7, color=colour,
+                   lw=1.4, label=label)
+        ax[j].axhline(base.em, ls="--", c="k", lw=1,
+                      label=f"exact (Flat) — EM {base.em:.3f}")
+        ax[j].set_xscale("log")
+        ax[j].set_xticks(list(d.value))
+        ax[j].get_xaxis().set_major_formatter(
+            matplotlib.ticker.ScalarFormatter())
+        ax[j].minorticks_off()
+        ax[j].set_xlim(d.value.min() * 0.7, d.value.max() * 1.45)
+        ax[j].set_ylim(df.em.min() - 0.02, df.em.max() + 0.03)
+        ax[j].set_xlabel(f"{pname} (log) — left = more aggressive")
+        ax[j].set_ylabel("exact match")
+        ax[j].set_title(f"({'ab'[j]}) {label}: quality vs {pname}")
+
+        ax[2].plot(d.value, d.ndis, "-", marker=marker, ms=7, color=colour,
+                   lw=1.4, label=f"{label} ({pname})")
+        for _, r in d.iterrows():
+            manifest.append({"figure": "knob1_parameters", "knob": 1,
+                             "regime": 2, "setting": r.setting,
+                             "x_axis": pname, "x": float(r.value),
+                             "em": float(r.em), "ndis": float(r.ndis)})
+
+    ax[2].axhline(base.ndis, ls="--", c="k", lw=1,
+                  label=f"exact = {int(base.ndis):,} per query")
+    ax[2].set_xscale("log")
+    ax[2].set_yscale("log")
+    ax[2].set_xlabel("parameter value (log) — not comparable across families")
+    ax[2].set_ylabel("distance computations per query (log)")
+    ax[2].set_title("(c) what each parameter costs")
+
+    for a in ax:
+        a.grid(alpha=.3)
+        a.legend(fontsize=8, loc="best")
+
+    fig.suptitle("Knob 1 — quality vs the configured parameter · regime 2 · "
+                 "short mode · n=1000", fontsize=11)
+    fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
 
@@ -358,6 +427,7 @@ def self_test() -> int:
 
 FIGURES = [
     ("knob1_search_effort", fig_knob1),
+    ("knob1_parameters", fig_knob1_params),
 ]
 
 
@@ -372,8 +442,7 @@ def build(results_dir: str, out_dir: str) -> int:
     with open(mpath, "w") as fh:
         json.dump({"figures": [n for n, _ in FIGURES],
                    "points": manifest}, fh, indent=2)
-    untested = sum(1 for r in manifest if r["verdict"] == "no paired test")
-    print(f"wrote {mpath}  ({len(manifest)} points, {untested} untested)")
+    print(f"wrote {mpath}  ({len(manifest)} plotted points)")
     return 0
 
 

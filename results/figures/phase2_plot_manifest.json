@@ -1,6 +1,7 @@
 {
   "figures": [
-    "knob1_search_effort"
+    "knob1_search_effort",
+    "knob1_parameters"
   ],
   "points": [
     {
@@ -12,9 +13,8 @@
       "x": 406.5,
       "em": 0.275,
       "f1": 0.3618,
-      "verdict": "SIGNIFICANT",
-      "discordant": 81,
-      "p": 0.0008
+      "complete_frac": 0.365,
+      "ann_recall": 0.743
     },
     {
       "figure": "knob1_search_effort",
@@ -25,9 +25,8 @@
       "x": 512.1,
       "em": 0.287,
       "f1": 0.3813,
-      "verdict": "no paired test",
-      "discordant": null,
-      "p": null
+      "complete_frac": 0.424,
+      "ann_recall": 0.8254
     },
     {
       "figure": "knob1_search_effort",
@@ -38,9 +37,8 @@
       "x": 766.3,
       "em": 0.292,
       "f1": 0.3887,
-      "verdict": "no paired test",
-      "discordant": null,
-      "p": null
+      "complete_frac": 0.496,
+      "ann_recall": 0.9028
     },
     {
       "figure": "knob1_search_effort",
@@ -51,9 +49,8 @@
       "x": 1228.4,
       "em": 0.297,
       "f1": 0.3954,
-      "verdict": "SIGNIFICANT",
-      "discordant": 13,
-      "p": 0.0225
+      "complete_frac": 0.527,
+      "ann_recall": 0.9562
     },
     {
       "figure": "knob1_search_effort",
@@ -64,9 +61,8 @@
       "x": 91.5,
       "em": 0.206,
       "f1": 0.2792,
-      "verdict": "SIGNIFICANT",
-      "discordant": 178,
-      "p": 0.0
+      "complete_frac": 0.116,
+      "ann_recall": 0.3644
     },
     {
       "figure": "knob1_search_effort",
@@ -77,9 +73,8 @@
       "x": 500.0,
       "em": 0.28,
       "f1": 0.3716,
-      "verdict": "no paired test",
-      "discordant": null,
-      "p": null
+      "complete_frac": 0.368,
+      "ann_recall": 0.7076
     },
     {
       "figure": "knob1_search_effort",
@@ -90,9 +85,78 @@
       "x": 3577.4,
       "em": 0.304,
       "f1": 0.3955,
-      "verdict": "no paired test",
-      "discordant": null,
-      "p": null
+      "complete_frac": 0.527,
+      "ann_recall": 0.9202
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef5",
+      "x_axis": "ef",
+      "x": 5.0,
+      "em": 0.275,
+      "ndis": 406.5
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef8",
+      "x_axis": "ef",
+      "x": 8.0,
+      "em": 0.287,
+      "ndis": 512.1
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef16",
+      "x_axis": "ef",
+      "x": 16.0,
+      "em": 0.292,
+      "ndis": 766.3
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_hnsw_ef32",
+      "x_axis": "ef",
+      "x": 32.0,
+      "em": 0.297,
+      "ndis": 1228.4
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_ivf_nprobe1",
+      "x_axis": "nprobe",
+      "x": 1.0,
+      "em": 0.206,
+      "ndis": 91.5
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_ivf_nprobe6",
+      "x_axis": "nprobe",
+      "x": 6.0,
+      "em": 0.28,
+      "ndis": 500.0
+    },
+    {
+      "figure": "knob1_parameters",
+      "knob": 1,
+      "regime": 2,
+      "setting": "knob1_ivf_nprobe48",
+      "x_axis": "nprobe",
+      "x": 48.0,
+      "em": 0.304,
+      "ndis": 3577.4
     }
   ]
 }
