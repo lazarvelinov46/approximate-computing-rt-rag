@@ -362,23 +362,35 @@ def fig_knob2_params(results_dir: str, out_path: str, manifest: list) -> None:
     """The same data on the axes you configure.
 
     PQ is set by m (subquantizers per vector), SQ by bits per component.
-    Separate panels: m=16 and 8 bits are not the same kind of number, so a
-    shared x-axis would invite a comparison the numbers do not support.
-    Panel (c) is the translation, measured on this corpus at dim 384.
+    Separate panels: m=16 and 8 bits are not the same kind of number.
+
+    knob2_summary.csv stores m as TEXT ("192", and "-" for SQ rows) because
+    notebook 08 casts it to str to join against the dense sweep. Left as
+    strings, matplotlib plots them categorically at positions 0..N and the
+    log axis then drops position 0 — so coerce to numeric here and let the
+    "-" rows become NaN.
+
+    No parameter-to-compression panel: unlike knob 1's measured ndis,
+    compression here is arithmetic (m bytes per vector against fp32's 1,536),
+    so plotting it would present a definition as a result. It is annotated
+    on the points instead.
     """
     df = pd.read_csv(os.path.join(results_dir, "knob2_summary.csv"))
     base = df.loc[df.compression.astype(float).idxmin()]
     fam = (("pq", "PQ", "m (subquantizers)", C_A, "o"),
            ("sq", "SQ", "bits per component", C_B, "s"))
 
-    fig, ax = plt.subplots(1, 3, figsize=(14, 4.4))
+    fig, ax = plt.subplots(1, 2, figsize=(10.5, 4.4))
     for j, (key, label, pname, colour, marker) in enumerate(fam):
         d = df[df.setting.str.contains(key, case=False)
                & (df.setting != base.setting)].copy()
         if d.empty:
             continue
         xcol = "m" if key == "pq" else "nbits"
+        d[xcol] = pd.to_numeric(d[xcol], errors="coerce")
         d = d.dropna(subset=[xcol]).sort_values(xcol)
+        if d.empty:
+            continue
 
         ax[j].plot(d[xcol], d.em, "-", marker=marker, ms=7, color=colour,
                    lw=1.4, label=label)
@@ -390,14 +402,16 @@ def fig_knob2_params(results_dir: str, out_path: str, manifest: list) -> None:
             matplotlib.ticker.ScalarFormatter())
         ax[j].minorticks_off()
         ax[j].set_xlim(float(d[xcol].min()) * 0.7, float(d[xcol].max()) * 1.45)
-        ax[j].set_ylim(df.em.min() - 0.02, df.em.max() + 0.03)
+        ax[j].set_ylim(df.em.min() - 0.03, df.em.max() + 0.03)
         ax[j].set_xlabel(f"{pname} (log) — left = more aggressive")
         ax[j].set_ylabel("exact match")
         ax[j].set_title(f"({'ab'[j]}) {label}: quality vs {pname}")
 
-        ax[2].plot(d[xcol], d.compression, "-", marker=marker, ms=7,
-                   color=colour, lw=1.4, label=f"{label} ({pname})")
         for _, r in d.iterrows():
+            ax[j].annotate(f"{float(r.compression):.0f}x",
+                           (float(r[xcol]), float(r.em)),
+                           textcoords="offset points", xytext=(0, -15),
+                           ha="center", fontsize=7.5, color=colour)
             manifest.append({"figure": "knob2_parameters", "knob": 2,
                              "regime": 2, "setting": r.setting,
                              "x_axis": xcol, "x": float(r[xcol]),
@@ -405,17 +419,8 @@ def fig_knob2_params(results_dir: str, out_path: str, manifest: list) -> None:
                              "compression": float(r.compression),
                              "corpus_mib": float(r.corpus_mib)})
 
-    ax[2].axhline(1.0, ls="--", c="k", lw=1,
-                  label=f"exact fp32 = {float(base.corpus_mib):.0f} MiB")
-    ax[2].set_xscale("log")
-    ax[2].set_yscale("log")
-    ax[2].set_xlabel("parameter value (log) — not comparable across families")
-    ax[2].set_ylabel("compression vs fp32 (log)")
-    ax[2].set_title("(c) what each parameter costs")
-
-    for a in ax:
-        a.grid(alpha=.3)
-        a.legend(fontsize=8, loc="best")
+        ax[j].grid(alpha=.3)
+        ax[j].legend(fontsize=8, loc="best")
 
     fig.suptitle("Knob 2 — quality vs the configured parameter · regime 2 · "
                  "short mode · n=1000", fontsize=11)
@@ -427,79 +432,178 @@ def fig_knob2_params(results_dir: str, out_path: str, manifest: list) -> None:
 
 # --- knob 3 ----------------------------------------------------------------
 
-def fig_knob3(results_dir: str, out_path: str, manifest: list) -> None:
-    """Regime 1. Quality vs KV-cache precision.
+def _k3_label(s: str) -> str:
+    return str(s).replace("kv_hqq_", "").replace("_r512", "")
 
-    x is effective bits (nbits plus per-group scale/zero overhead), which is
-    NOT injective: 4b/g32 and 3b/g16 both sit at 5.0. Series are split by
-    group size so each series is injective and the collisions read as the
-    vertical pairs they are. residual_length=0 varies a different parameter
-    and is drawn detached from both lines.
+
+def fig_knob3(results_dir: str, out_path: str, manifest: list) -> None:
+    """Regime 1, hqq backend. Quality vs KV storage cost.
+
+    x is MEASURED effective bits (nbits plus per-group scale/zero metadata).
+    It is NOT injective: 4b/g32 and 3b/g32 both land on 5.00, because 3-bit
+    uses a packing whose payload does not follow nbits + 32/G. Series are
+    therefore ordered by nbits, not by x, and the vertical segment at 5.00 is
+    the group-size finding made visible rather than a glitch.
+
+    residual_length=0 is drawn detached: it varies flush behaviour, not
+    precision, and re-quantizes an already-lossy store on alternating decode
+    steps.
+
+    No retrieval panels: complete_frac and recall@5 are constant across every
+    setting here. That constancy is the isolation check, stated in the title.
     """
     short = pd.read_csv(os.path.join(results_dir, "knob3_summary.csv"))
     expl = pd.read_csv(os.path.join(results_dir, "knob3_explain_summary.csv"))
-    sb = short.loc[short.effective_bits.astype(float).idxmax()]
-    eb = expl.loc[expl.effective_bits.astype(float).idxmax()]
+    num = ("nbits", "q_group_size", "residual_length", "effective_bits",
+           "em", "f1", "abstain_rate", "complete_frac")
+    for d_ in (short, expl):
+        for c in num:
+            if c in d_.columns:
+                d_[c] = pd.to_numeric(d_[c], errors="coerce")
 
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4.4))
+    base = short.loc[short.effective_bits.idxmax()]
+    ebase = expl.loc[expl.effective_bits.idxmax()]
+    curves = short[(short.residual_length == 512)
+                   & (short.setting != base.setting)]
+
+    panels = (("em", "exact match", "(a) EM vs storage cost"),
+              ("f1", "F1", "(b) F1 vs storage cost"),
+              ("abstain_rate", "abstain rate",
+               "(c) abstention falls as the cache degrades"))
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.4))
+    ax = axes.ravel()
 
     for g, colour, marker in ((32, C_A, "o"), (16, C_B, "s")):
-        d = short[(short.q_group_size == g)
-                  & (short.residual_length == 512)
-                  & (short.setting != sb.setting)].sort_values("effective_bits")
+        d = curves[curves.q_group_size == g].sort_values("nbits",
+                                                         ascending=False)
         if d.empty:
             continue
-        ax[0].plot(d.effective_bits, d.em, "-", marker=marker, ms=7,
-                   color=colour, lw=1.4, label=f"hqq, group {g}")
+        for j, (col, _, _) in enumerate(panels):
+            ax[j].plot(d.effective_bits, d[col], "-", marker=marker, ms=7,
+                       color=colour, lw=1.4, label=f"group {g}")
         for _, r in d.iterrows():
+            ax[0].annotate(_k3_label(r.setting),
+                           (float(r.effective_bits), float(r.em)),
+                           textcoords="offset points", xytext=(0, -15),
+                           ha="center", fontsize=7, color=colour)
             manifest.append({"figure": "knob3_kv_precision", "knob": 3,
                              "regime": 1, "mode": "short",
                              "setting": r.setting, "x_axis": "effective_bits",
-                             "x": float(r.effective_bits), "em": float(r.em)})
+                             "x": float(r.effective_bits), "em": float(r.em),
+                             "f1": float(r.f1),
+                             "abstain_rate": float(r.abstain_rate)})
 
     r0 = short[short.residual_length == 0]
     if not r0.empty:
-        ax[0].plot(r0.effective_bits, r0.em, "^", ms=9, color="0.35",
-                   ls="none", label="residual_length = 0")
+        ax[0].plot(r0.effective_bits, r0.em, "^", ms=10, color="0.35",
+                   ls="none", label="residual_length = 0 (flush probe)")
 
-    ax[0].axhline(sb.em, ls="--", c="k", lw=1, label=f"fp16 — EM {sb.em:.3f}")
-    ax[0].scatter([float(sb.effective_bits)], [float(sb.em)], marker="*",
-                  s=200, c="k", zorder=6)
-    ax[0].set_xlabel("effective bits per KV element\nleft = more aggressive")
-    ax[0].set_ylabel("exact match")
-    ax[0].set_title("(a) short mode")
+    for j, (col, ylab, title) in enumerate(panels):
+        yb = float(base[col])
+        ax[j].axhline(yb, ls="--", c="k", lw=1, label=f"fp16 — {yb:.3f}")
+        ax[j].scatter([float(base.effective_bits)], [yb], marker="*", s=200,
+                      c="k", zorder=6)
+        ax[j].set_xlabel("effective bits per KV element (measured)\n"
+                         "left = more aggressive")
+        ax[j].set_ylabel(ylab)
+        ax[j].set_title(title)
 
-    m = expl[expl.setting != eb.setting].merge(
-        short[["setting", "em"]], on="setting", how="left",
-        suffixes=("", "_short"))
-    ax[1].plot(m.effective_bits, m.em, "o", ms=8, color=C_A, ls="none",
-               label="explain")
-    ax[1].plot(m.effective_bits, m.em_short, "o", ms=8, color="0.6",
-               fillstyle="none", ls="none", label="short (same settings)")
+    # (d) the same settings under both answer formats.
+    m = (expl[["setting", "effective_bits", "em"]]
+         .rename(columns={"em": "em_explain"})
+         .merge(short[["setting", "em"]].rename(columns={"em": "em_short"}),
+                on="setting", how="inner")
+         .sort_values("effective_bits", ascending=False))
+    xs = list(range(len(m)))
+    ax[3].bar([x - 0.19 for x in xs], m.em_short, width=0.38, color="0.6",
+              label="short")
+    ax[3].bar([x + 0.19 for x in xs], m.em_explain, width=0.38, color=C_A,
+              label="explain")
+    ax[3].axhline(float(base.em), ls="--", c="0.4", lw=1,
+                  label=f"fp16 short — {float(base.em):.3f}")
+    ax[3].axhline(float(ebase.em), ls="--", c=C_A, lw=1,
+                  label=f"fp16 explain — {float(ebase.em):.3f}")
+    ax[3].set_xticks(xs)
+    ax[3].set_xticklabels([f"{_k3_label(s)}\n{b:.2f} bits"
+                           for s, b in zip(m.setting, m.effective_bits)],
+                          fontsize=8)
+    ax[3].set_ylabel("exact match")
+    ax[3].set_title("(d) explain vs short, same settings")
     for _, r in m.iterrows():
-        ax[1].annotate(f"{int(r.nbits)}b/g{int(r.q_group_size)}",
-                       (float(r.effective_bits), float(r.em)),
-                       textcoords="offset points", xytext=(0, -16),
-                       ha="center", fontsize=8, color=C_A)
         manifest.append({"figure": "knob3_kv_precision", "knob": 3,
-                         "regime": 1, "mode": "explain", "setting": r.setting,
-                         "x_axis": "effective_bits",
-                         "x": float(r.effective_bits), "em": float(r.em)})
-
-    ax[1].axhline(eb.em, ls="--", c=C_A, lw=1,
-                  label=f"fp16 explain — EM {eb.em:.3f}")
-    ax[1].axhline(sb.em, ls="--", c="0.6", lw=1,
-                  label=f"fp16 short — EM {sb.em:.3f}")
-    ax[1].set_xlabel("effective bits per KV element\nleft = more aggressive")
-    ax[1].set_ylabel("exact match")
-    ax[1].set_title("(b) explain vs short, same settings")
+                         "regime": 1, "mode": "short+explain",
+                         "setting": r.setting,
+                         "effective_bits": float(r.effective_bits),
+                         "em_short": float(r.em_short),
+                         "em_explain": float(r.em_explain)})
 
     for a in ax:
         a.grid(alpha=.3)
         a.legend(fontsize=8, loc="best")
 
-    fig.suptitle("Knob 3 — KV-cache precision · regime 1 (per-question "
-                 "corpora) · n=1000", fontsize=11)
+    fig.suptitle("Knob 3 — KV-cache precision · regime 1 · n=1000 · "
+                 f"retrieval untouched (complete_frac "
+                 f"{float(base.complete_frac):.3f} at every setting)",
+                 fontsize=11)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+def fig_knob3_params(results_dir: str, out_path: str, manifest: list) -> None:
+    """The same data on the axis you configure.
+
+    nbits IS injective within a group size, which effective bits is not, so
+    this is the axis the curve actually belongs on. Panel (b) is the
+    translation and it earns its place: unlike knob 2's arithmetic
+    compression, effective bits here is measured, and 3-bit provably breaks
+    the nbits + 32/G formula that the other widths follow.
+    """
+    short = pd.read_csv(os.path.join(results_dir, "knob3_summary.csv"))
+    for c in ("nbits", "q_group_size", "residual_length", "effective_bits",
+              "em"):
+        if c in short.columns:
+            short[c] = pd.to_numeric(short[c], errors="coerce")
+
+    base = short.loc[short.effective_bits.idxmax()]
+    curves = short[(short.residual_length == 512)
+                   & (short.setting != base.setting)]
+
+    fig, ax = plt.subplots(1, 2, figsize=(10.5, 4.4))
+    ticks = sorted(set(curves.nbits.dropna().astype(int)))
+
+    for g, colour, marker in ((32, C_A, "o"), (16, C_B, "s")):
+        d = curves[curves.q_group_size == g].sort_values("nbits")
+        if d.empty:
+            continue
+        ax[0].plot(d.nbits, d.em, "-", marker=marker, ms=7, color=colour,
+                   lw=1.4, label=f"group {g}")
+        ax[1].plot(d.nbits, d.effective_bits, "-", marker=marker, ms=7,
+                   color=colour, lw=1.4, label=f"group {g} (measured)")
+        ax[1].plot(ticks, [t + 32.0 / g for t in ticks], ":", color=colour,
+                   lw=1.1, alpha=.7, label=f"group {g} (nbits + 32/G)")
+        for _, r in d.iterrows():
+            manifest.append({"figure": "knob3_parameters", "knob": 3,
+                             "regime": 1, "mode": "short",
+                             "setting": r.setting, "x_axis": "nbits",
+                             "x": float(r.nbits), "em": float(r.em),
+                             "effective_bits": float(r.effective_bits)})
+
+    ax[0].axhline(float(base.em), ls="--", c="k", lw=1,
+                  label=f"fp16 — EM {float(base.em):.3f}")
+    ax[0].set_ylabel("exact match")
+    ax[0].set_title("(a) quality vs nominal bit width")
+    ax[1].set_ylabel("effective bits per element")
+    ax[1].set_title("(b) what each width actually costs")
+
+    for a in ax:
+        a.set_xticks(ticks)
+        a.set_xlabel("nbits (hqq) — left = more aggressive")
+        a.grid(alpha=.3)
+        a.legend(fontsize=8, loc="best")
+
+    fig.suptitle("Knob 3 — quality vs the configured parameter · regime 1 · "
+                 "short mode · n=1000", fontsize=11)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -642,6 +746,7 @@ FIGURES = [
     ("knob2_embedding_precision", fig_knob2),
     ("knob2_parameters", fig_knob2_params),
     ("knob3_kv_precision", fig_knob3),
+    ("knob3_parameters", fig_knob3_params),
 ]
 
 

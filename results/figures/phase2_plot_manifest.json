@@ -4,7 +4,8 @@
     "knob1_parameters",
     "knob2_embedding_precision",
     "knob2_parameters",
-    "knob3_kv_precision"
+    "knob3_kv_precision",
+    "knob3_parameters"
   ],
   "points": [
     {
@@ -260,17 +261,6 @@
       "figure": "knob2_parameters",
       "knob": 2,
       "regime": 2,
-      "setting": "knob2_pq_m192",
-      "x_axis": "m",
-      "x": 192.0,
-      "em": 0.306,
-      "compression": 8.0,
-      "corpus_mib": 12.2
-    },
-    {
-      "figure": "knob2_parameters",
-      "knob": 2,
-      "regime": 2,
       "setting": "knob2_pq_m32",
       "x_axis": "m",
       "x": 32.0,
@@ -304,6 +294,17 @@
       "figure": "knob2_parameters",
       "knob": 2,
       "regime": 2,
+      "setting": "knob2_pq_m192",
+      "x_axis": "m",
+      "x": 192.0,
+      "em": 0.306,
+      "compression": 8.0,
+      "corpus_mib": 12.2
+    },
+    {
+      "figure": "knob2_parameters",
+      "knob": 2,
+      "regime": 2,
       "setting": "knob2_sq_4bit",
       "x_axis": "nbits",
       "x": 4.0,
@@ -327,20 +328,24 @@
       "knob": 3,
       "regime": 1,
       "mode": "short",
-      "setting": "kv_hqq_n1_g32_r512",
+      "setting": "kv_hqq_n8_g32_r512",
       "x_axis": "effective_bits",
-      "x": 2.0,
-      "em": 0.0
+      "x": 9.0,
+      "em": 0.391,
+      "f1": 0.5068,
+      "abstain_rate": 0.009
     },
     {
       "figure": "knob3_kv_precision",
       "knob": 3,
       "regime": 1,
       "mode": "short",
-      "setting": "kv_hqq_n2_g32_r512",
+      "setting": "kv_hqq_n4_g32_r512",
       "x_axis": "effective_bits",
-      "x": 3.0,
-      "em": 0.046
+      "x": 5.0,
+      "em": 0.385,
+      "f1": 0.5042,
+      "abstain_rate": 0.01
     },
     {
       "figure": "knob3_kv_precision",
@@ -350,37 +355,33 @@
       "setting": "kv_hqq_n3_g32_r512",
       "x_axis": "effective_bits",
       "x": 5.0,
-      "em": 0.339
+      "em": 0.339,
+      "f1": 0.4746,
+      "abstain_rate": 0.01
     },
     {
       "figure": "knob3_kv_precision",
       "knob": 3,
       "regime": 1,
       "mode": "short",
-      "setting": "kv_hqq_n4_g32_r512",
+      "setting": "kv_hqq_n2_g32_r512",
       "x_axis": "effective_bits",
-      "x": 5.0,
-      "em": 0.385
+      "x": 3.0,
+      "em": 0.046,
+      "f1": 0.1503,
+      "abstain_rate": 0.005
     },
     {
       "figure": "knob3_kv_precision",
       "knob": 3,
       "regime": 1,
       "mode": "short",
-      "setting": "kv_hqq_n8_g32_r512",
+      "setting": "kv_hqq_n1_g32_r512",
       "x_axis": "effective_bits",
-      "x": 9.0,
-      "em": 0.391
-    },
-    {
-      "figure": "knob3_kv_precision",
-      "knob": 3,
-      "regime": 1,
-      "mode": "short",
-      "setting": "kv_hqq_n2_g16_r512",
-      "x_axis": "effective_bits",
-      "x": 4.0,
-      "em": 0.37
+      "x": 2.0,
+      "em": 0.0,
+      "f1": 0.0264,
+      "abstain_rate": 0.0
     },
     {
       "figure": "knob3_kv_precision",
@@ -390,37 +391,138 @@
       "setting": "kv_hqq_n3_g16_r512",
       "x_axis": "effective_bits",
       "x": 6.0,
-      "em": 0.39
+      "em": 0.39,
+      "f1": 0.506,
+      "abstain_rate": 0.01
     },
     {
       "figure": "knob3_kv_precision",
       "knob": 3,
       "regime": 1,
-      "mode": "explain",
-      "setting": "kv_hqq_n4_g32_r512",
-      "x_axis": "effective_bits",
-      "x": 5.0,
-      "em": 0.416
-    },
-    {
-      "figure": "knob3_kv_precision",
-      "knob": 3,
-      "regime": 1,
-      "mode": "explain",
+      "mode": "short",
       "setting": "kv_hqq_n2_g16_r512",
       "x_axis": "effective_bits",
       "x": 4.0,
-      "em": 0.334
+      "em": 0.37,
+      "f1": 0.4917,
+      "abstain_rate": 0.009
     },
     {
       "figure": "knob3_kv_precision",
       "knob": 3,
       "regime": 1,
-      "mode": "explain",
+      "mode": "short+explain",
+      "setting": "kv_fp16",
+      "effective_bits": 16.0,
+      "em_short": 0.391,
+      "em_explain": 0.424
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short+explain",
+      "setting": "kv_hqq_n4_g32_r512",
+      "effective_bits": 5.0,
+      "em_short": 0.385,
+      "em_explain": 0.416
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short+explain",
+      "setting": "kv_hqq_n2_g16_r512",
+      "effective_bits": 4.0,
+      "em_short": 0.37,
+      "em_explain": 0.334
+    },
+    {
+      "figure": "knob3_kv_precision",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short+explain",
       "setting": "kv_hqq_n2_g32_r512",
-      "x_axis": "effective_bits",
+      "effective_bits": 3.0,
+      "em_short": 0.046,
+      "em_explain": 0.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n1_g32_r512",
+      "x_axis": "nbits",
+      "x": 1.0,
+      "em": 0.0,
+      "effective_bits": 2.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n2_g32_r512",
+      "x_axis": "nbits",
+      "x": 2.0,
+      "em": 0.046,
+      "effective_bits": 3.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n3_g32_r512",
+      "x_axis": "nbits",
       "x": 3.0,
-      "em": 0.0
+      "em": 0.339,
+      "effective_bits": 5.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n4_g32_r512",
+      "x_axis": "nbits",
+      "x": 4.0,
+      "em": 0.385,
+      "effective_bits": 5.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n8_g32_r512",
+      "x_axis": "nbits",
+      "x": 8.0,
+      "em": 0.391,
+      "effective_bits": 9.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n2_g16_r512",
+      "x_axis": "nbits",
+      "x": 2.0,
+      "em": 0.37,
+      "effective_bits": 4.0
+    },
+    {
+      "figure": "knob3_parameters",
+      "knob": 3,
+      "regime": 1,
+      "mode": "short",
+      "setting": "kv_hqq_n3_g16_r512",
+      "x_axis": "nbits",
+      "x": 3.0,
+      "em": 0.39,
+      "effective_bits": 6.0
     }
   ]
 }
