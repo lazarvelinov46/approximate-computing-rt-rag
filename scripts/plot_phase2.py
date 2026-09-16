@@ -770,6 +770,152 @@ def fig_knob5(results_dir: str, out_path: str, manifest: list) -> None:
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
 
+# --- cross-knob -------------------------------------------------------------
+
+def fig_crossknob(results_dir: str, out_path: str, manifest: list) -> None:
+    """Qualitative panel: five knobs, shared EM axis, own x-axis each.
+
+    NOT one plot. The knobs run in different regimes, at different modes,
+    with aggressiveness axes that share no units — ndis, compression ratio,
+    effective bits, keep_ratio, k. Forcing them onto a common x would require
+    inventing a normalisation nobody measured. The shared y-axis is the only
+    honest thing they have in common, so that is the only thing shared, and
+    each panel carries its own reference line and its own coverage note.
+    """
+    def load(name, cols):
+        d = pd.read_csv(os.path.join(results_dir, name))
+        for c in cols:
+            if c in d.columns:
+                d[c] = pd.to_numeric(d[c], errors="coerce")
+        return d
+
+    k1 = load("knob1_summary.csv", ("ndis", "em"))
+    k2 = load("knob2_summary.csv", ("compression", "em"))
+    k3 = load("knob3_summary.csv",
+              ("effective_bits", "em", "q_group_size", "residual_length",
+               "nbits"))
+    k4 = load("knob4_all_settings.csv", ("keep_ratio", "em"))
+    k5a = load("knob5_summary.csv", ("k", "em"))
+    k5b = load("knob5_r2_summary.csv", ("k", "em", "batch"))
+
+    fig, axes = plt.subplots(1, 5, figsize=(19, 4.9), sharey=True)
+    ax = axes.ravel()
+    ems, notes = [], []
+
+    # knob 1
+    b1 = k1[k1["index"] == "flat"].iloc[0]
+    for fam, lab, col, mk in (("hnsw", "HNSW", C_A, "o"),
+                              ("ivf", "IVF", C_B, "s")):
+        d = k1[k1["index"] == fam].sort_values("ndis")
+        ax[0].plot(d.ndis, d.em, "-", marker=mk, ms=6, color=col, lw=1.3,
+                   label=lab)
+        ems += list(d.em)
+    ax[0].axhline(float(b1.em), ls="--", c="k", lw=1, label="exact")
+    ax[0].set_xscale("log")
+    ax[0].set_xlabel("ndis (log) — left = aggressive")
+    ax[0].set_title("1 · search effort\nregime 2 · short")
+    notes.append(("1 · search effort", "regime 2 · short", "ndis",
+                  float(b1.em)))
+
+    # knob 2
+    b2 = k2.loc[k2.compression.idxmin()]
+    for key, lab, col, mk in (("pq", "PQ", C_A, "o"), ("sq", "SQ", C_B, "s")):
+        d = k2[k2.setting.str.contains(key, case=False)
+               & (k2.setting != b2.setting)].sort_values("compression")
+        ax[1].plot(d.compression, d.em, "-", marker=mk, ms=6, color=col,
+                   lw=1.3, label=lab)
+        ems += list(d.em)
+    ax[1].axhline(float(b2.em), ls="--", c="k", lw=1, label="exact fp32")
+    ax[1].set_xscale("log")
+    ax[1].set_xlabel("compression (log) — right = aggressive")
+    ax[1].set_title("2 · embedding precision\nregime 2 · short")
+    notes.append(("2 · embedding precision", "regime 2 · short",
+                  "compression", float(b2.em)))
+
+    # knob 3
+    b3 = k3.loc[k3.effective_bits.idxmax()]
+    cur3 = k3[(k3.residual_length == 512) & (k3.setting != b3.setting)]
+    for g, col, mk in ((32, C_A, "o"), (16, C_B, "s")):
+        d = cur3[cur3.q_group_size == g].sort_values("nbits", ascending=False)
+        if d.empty:
+            continue
+        ax[2].plot(d.effective_bits, d.em, "-", marker=mk, ms=6, color=col,
+                   lw=1.3, label=f"group {g}")
+        ems += list(d.em)
+    ax[2].axhline(float(b3.em), ls="--", c="k", lw=1, label="fp16")
+    ax[2].set_xlabel("effective bits — left = aggressive")
+    ax[2].set_title("3 · KV precision\nregime 1 · short")
+    notes.append(("3 · KV precision", "regime 1 · short", "effective bits",
+                  float(b3.em)))
+
+    # knob 4
+    sh = k4[k4["mode"] == "short"]
+    b4 = sh[sh.policy == "none"].iloc[0]
+    for pol, (col, mk, lab) in POLICY_STYLE.items():
+        d = sh[sh.policy == pol].sort_values("keep_ratio")
+        if d.empty:
+            continue
+        ax[3].plot(d.keep_ratio, d.em, "-", marker=mk, ms=6, color=col,
+                   lw=1.3, label=lab)
+        ems += list(d.em)
+    ax[3].axhline(float(b4.em), ls="--", c="k", lw=1, label="no eviction")
+    ax[3].set_xlabel("keep_ratio — left = aggressive")
+    ax[3].set_title("4 · KV eviction\nregime 1 · short · batch 1")
+    notes.append(("4 · KV eviction", "regime 1 · short · batch 1",
+                  "keep_ratio", float(b4.em)))
+
+    # knob 5
+    r2_16 = k5b[k5b.batch == 16].sort_values("k")
+    d1 = k5a.sort_values("k")
+    ax[4].plot(d1.k, d1.em, "-", marker="o", ms=6, color=C_A, lw=1.3,
+               label="regime 1")
+    ax[4].plot(r2_16.k, r2_16.em, "-", marker="s", ms=6, color=C_B, lw=1.3,
+               label="regime 2")
+    ems += list(d1.em) + list(r2_16.em)
+    ax[4].axhline(float(d1[d1.k == 5].iloc[0].em), ls="--", c=C_A, lw=1,
+                  label="regime 1, k=5")
+    ax[4].axhline(float(r2_16[r2_16.k == 5].iloc[0].em), ls="--", c=C_B,
+                  lw=1, label="regime 2, k=5")
+    ax[4].set_xscale("log")
+    ax[4].set_xticks(sorted(set(d1.k.astype(int)) | set(r2_16.k.astype(int))))
+    ax[4].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax[4].minorticks_off()
+    ax[4].set_xlabel("k (log) — left = aggressive")
+    ax[4].set_title("5 · top-k\nregimes 1 and 2 · short")
+    notes.append(("5 · top-k", "regimes 1 and 2 · short", "k",
+                  float(d1[d1.k == 5].iloc[0].em)))
+
+    for a in ax[:5]:
+        a.grid(alpha=.3)
+        a.legend(fontsize=6.5, loc="lower right", framealpha=.9)
+    ax[0].set_ylabel("exact match")
+    lo, hi = min(ems), max(ems)
+    ax[0].set_ylim(lo - 0.04, hi + 0.04)
+
+    # coverage cell — the asymmetries, stated rather than hidden
+    cov = (
+        "Only the EM axis is shared — the five x-axes share no units, so this "
+        "is a qualitative panel, not one plot. Regime 1's baseline is EM "
+        "0.391 and regime 2's is 0.306, so vertical\nposition is comparable "
+        "WITHIN a panel, not across panels. Coverage: knobs 1-2 ran regime 2 "
+        "only · knobs 3-4 regime 1 only · knob 5 both · knob 4's explain arm "
+        "covers 2 keep_ratios where short covers 3."
+    )
+    fig.text(0.5, -0.02, cov, ha="center", va="top", fontsize=8,
+             linespacing=1.6)
+
+    for n, cov, axis, ref in notes:
+        manifest.append({"figure": "crossknob_panel", "knob": n.split(" ")[0],
+                         "coverage": cov, "x_axis": axis,
+                         "reference_em": ref})
+
+    fig.suptitle("Phase 2 cross-knob panel — five approximation knobs on a "
+                 "shared EM axis (qualitative comparison)", fontsize=12)
+    fig.subplots_adjust(left=0.045, right=0.995, top=0.80, bottom=0.20,
+                        wspace=0.18)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
 @dataclass
 class Input:
     path: str
@@ -911,6 +1057,7 @@ FIGURES = [
     ("knob3_parameters", fig_knob3_params),
     ("knob4_eviction", fig_knob4),
     ("knob5_topk", fig_knob5),
+    ("crossknob_panel", fig_crossknob),
 ]
 
 

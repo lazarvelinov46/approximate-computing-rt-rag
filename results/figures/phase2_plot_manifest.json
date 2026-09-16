@@ -7,7 +7,8 @@
     "knob3_kv_precision",
     "knob3_parameters",
     "knob4_eviction",
-    "knob5_topk"
+    "knob5_topk",
+    "crossknob_panel"
   ],
   "points": [
     {
@@ -888,6 +889,41 @@
       "f1": 0.4127,
       "complete_frac": 0.743,
       "prompt_tokens_mean": 2997.7
+    },
+    {
+      "figure": "crossknob_panel",
+      "knob": "1",
+      "coverage": "regime 2 \u00b7 short",
+      "x_axis": "ndis",
+      "reference_em": 0.306
+    },
+    {
+      "figure": "crossknob_panel",
+      "knob": "2",
+      "coverage": "regime 2 \u00b7 short",
+      "x_axis": "compression",
+      "reference_em": 0.306
+    },
+    {
+      "figure": "crossknob_panel",
+      "knob": "3",
+      "coverage": "regime 1 \u00b7 short",
+      "x_axis": "effective bits",
+      "reference_em": 0.391
+    },
+    {
+      "figure": "crossknob_panel",
+      "knob": "4",
+      "coverage": "regime 1 \u00b7 short \u00b7 batch 1",
+      "x_axis": "keep_ratio",
+      "reference_em": 0.392
+    },
+    {
+      "figure": "crossknob_panel",
+      "knob": "5",
+      "coverage": "regimes 1 and 2 \u00b7 short",
+      "x_axis": "k",
+      "reference_em": 0.391
     }
   ]
 }
