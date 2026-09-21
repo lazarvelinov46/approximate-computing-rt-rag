@@ -44,6 +44,44 @@ SYSTEM_EXPLAIN = (
 
 _ANSWER_RE = re.compile(r"answer\s*:\s*(.+)", re.IGNORECASE)
 
+# --- model-portability constants (cross-model arms) -----------------------
+# Llama 3.x templates write "Today Date: <strftime_now()>" into the system
+# block when no date_string is passed, so the prompt would change every day.
+# Pinned to the template's own fallback. Templates that never read it
+# (Qwen2.5) ignore the kwarg — byte-identity verified on every frozen Qwen
+# prompt in notebook 33 cell 2.
+TEMPLATE_KWARGS = {"date_string": "26 Jul 2024"}
+
+# The chat template already emits any BOS the model needs (Llama's opens with
+# <|begin_of_text|>); add_special_tokens=True would prepend a SECOND one. Qwen2
+# adds no special tokens either way — id-identity verified in notebook 33.
+ENCODE_KWARGS = {"add_special_tokens": False}
+
+
+def n_tokens(tok, text: str) -> int:
+    """Token count exactly as generate_batch tokenizes. Single source for the
+    prompt_tokens and decode_tokens columns."""
+    return len(tok.encode(text, **ENCODE_KWARGS))
+
+
+def kv_geometry(config) -> dict:
+    """KV shape and fp16 bytes per cached token (K and V, all layers).
+
+    36 KiB for Qwen2.5-3B (36 layers x 2 KV heads), 112 KiB for Llama-3.2-3B
+    (28 x 8). eviction.describe() defaults to the Qwen figure — pass this.
+    """
+    n_kv = config.num_key_value_heads
+    head_dim = getattr(config, "head_dim", None) or (
+        config.hidden_size // config.num_attention_heads)
+    n_layers = config.num_hidden_layers
+    return {
+        "n_layers": n_layers,
+        "n_kv_heads": n_kv,
+        "q_per_kv": config.num_attention_heads // n_kv,
+        "head_dim": head_dim,
+        "kv_bytes_per_token": 2 * n_layers * n_kv * head_dim * 2,
+    }
+
 
 def parse_answer(text: str) -> Tuple[str, bool]:
     """Extract the marked answer span -> (answer, parsed_ok).
@@ -63,17 +101,30 @@ def parse_answer(text: str) -> Tuple[str, bool]:
     return (lines[-1] if lines else ""), False
 
 
+def load_tokenizer(name: str):
+    """The tokenizer exactly as load_generator configures it. No weights, CPU-safe.
+
+    pad = eos only when the model ships no pad token (Llama 3.2 ships none, so
+    pad becomes <|eot_id|>). Harmless under left padding: the attention mask,
+    not the pad id, excludes the pad prefix, and finished rows are filled with
+    a special token that batch_decode strips.
+    """
+    from transformers import AutoTokenizer
+
+    tok = AutoTokenizer.from_pretrained(name, padding_side="left")
+    if tok.pad_token is None:
+        tok.pad_token = tok.eos_token
+    return tok
+
 def load_generator(name: str, dtype=torch.float16, device: int = 0):
     """-> (model, tokenizer), pinned to a single GPU.
 
     device_map={"": device} pins every layer to one card. "auto" would shard
     across the T4 pair and make peak-memory numbers meaningless.
     """
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM
 
-    tok = AutoTokenizer.from_pretrained(name, padding_side="left")
-    if tok.pad_token is None:
-        tok.pad_token = tok.eos_token
+    tok = load_tokenizer(name)
 
     model = AutoModelForCausalLM.from_pretrained(
         name, dtype=dtype, device_map={"": device},
@@ -99,6 +150,7 @@ def build_prompt(tok, question: str, paragraphs: Sequence[str],
          {"role": "user", "content": user}],
         tokenize=False,
         add_generation_prompt=True,
+        **TEMPLATE_KWARGS,
     )
 
 
@@ -164,7 +216,8 @@ def generate_batch(model, tok, prompts: Sequence[str],
     cache = EV.make_cache(model=model, batch_size=len(prompts),
                           **ev) if evicting else None
 
-    enc = tok(list(prompts), return_tensors="pt", padding=True).to(model.device)
+    enc = tok(list(prompts), return_tensors="pt", padding=True,
+              **ENCODE_KWARGS).to(model.device)
     with EV.attention_scoring(model, cache):
         out = model.generate(
             **enc,

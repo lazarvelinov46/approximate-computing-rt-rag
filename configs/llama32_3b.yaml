@@ -1,0 +1,5 @@
+# Overlay on configs/default.yaml for the Llama-3.2-3B-Instruct arm.
+# Load with load_config(model="llama32_3b"). Names ONLY what differs;
+# default.yaml stays frozen. Tag must match MODEL_TAGS in src/config.py.
+models:
+  generator: meta-llama/Llama-3.2-3B-Instruct
