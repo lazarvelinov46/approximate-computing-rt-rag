@@ -70,6 +70,8 @@ results/*
 !results/knob4_summary.json
 !results/knob4_all_settings.csv
 !results/figures
+!results/llama32_3b
+!results/qwen25_7b
 figures/*
 !figures/.gitkeep
 /data/

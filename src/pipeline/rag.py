@@ -198,6 +198,8 @@ def run_pipeline(
         embedder = E.load_embedder(cfg["models"]["embedder"])
     if generator is None or gen_tok is None:
         generator, gen_tok = G.load_generator(cfg["models"]["generator"])
+        from src.config import check_out_path
+        check_out_path(out_csv, generator.config.name_or_path)
 
     t0 = time.time()
     retrieved = retrieve_all(embedder, examples, top_k, progress=progress)
@@ -206,7 +208,7 @@ def run_pipeline(
                        system=system)
         for e, r in zip(examples, retrieved)
     ]
-    plens = [len(gen_tok.encode(p)) for p in prompts]
+    plens = [G.n_tokens(gen_tok, p) for p in prompts]
     if progress:
         print(f"retrieved + prompted {len(examples)} questions "
               f"in {time.time() - t0:.1f}s  [mode={mode}, "
@@ -272,7 +274,7 @@ def run_pipeline(
                     "raw_generation": text if mode == "explain" else "",
                     "parsed_ok": int(ok),
                     "prompt_tokens": plens[i],
-                    "decode_tokens": len(gen_tok.encode(text)),
+                    "decode_tokens": G.n_tokens(gen_tok, text),
                     "n_paragraphs": e.n_paragraphs,
                 }
                 rows.append(row)

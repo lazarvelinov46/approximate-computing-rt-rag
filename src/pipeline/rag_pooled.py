@@ -141,6 +141,8 @@ def run_pipeline_pooled(
         embedder = E.load_embedder(cfg["models"]["embedder"])
     if generator is None or gen_tok is None:
         generator, gen_tok = G.load_generator(cfg["models"]["generator"])
+        from src.config import check_out_path
+        check_out_path(out_csv, generator.config.name_or_path)
     if gold_global is None:
         gold_global = C.resolve_gold(corpus, examples)
 
@@ -152,7 +154,7 @@ def run_pipeline_pooled(
                        system=system)
         for e, r in zip(examples, retrieved)
     ]
-    plens = [len(gen_tok.encode(p)) for p in prompts]
+    plens = [G.n_tokens(gen_tok, p) for p in prompts]
     if progress:
         print(f"retrieved + prompted {len(examples)} questions in "
               f"{time.time() - t0:.1f}s  [mode={mode}, regime 2, "
@@ -195,7 +197,7 @@ def run_pipeline_pooled(
                     "raw_generation": text if mode == "explain" else "",
                     "parsed_ok": int(ok),
                     "prompt_tokens": plens[i],
-                    "decode_tokens": len(gen_tok.encode(text)),
+                    "decode_tokens": G.n_tokens(gen_tok, text),
                     "n_corpus": len(corpus),
                     "corpus_sha": sha,
                 }
