@@ -1,0 +1,196 @@
+{
+  "model": "meta-llama/Llama-3.2-3B-Instruct",
+  "snapshot": "0cb88a4f764b7a12671c53f0838cd831a0843b95",
+  "regime": 2,
+  "mode": "short",
+  "em_baseline": {
+    "llama": 0.327,
+    "qwen": 0.306
+  },
+  "settings": {
+    "knob1_hnsw_ef32": {
+      "complete_frac": 0.527,
+      "llama": {
+        "em": 0.311,
+        "dEM": -0.016,
+        "b": 2,
+        "c": 18,
+        "d": 20,
+        "p": 0.0004,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.4782,
+        "em_incomplete": 0.1247,
+        "abstain_rate": 0.053,
+        "bare_cite": 0.017
+      },
+      "qwen": {
+        "em": 0.297,
+        "dEM": -0.009,
+        "b": 2,
+        "c": 11,
+        "d": 13,
+        "p": 0.0225,
+        "verdict": "SIGNIFICANT"
+      }
+    },
+    "knob1_hnsw_ef5": {
+      "complete_frac": 0.365,
+      "llama": {
+        "em": 0.262,
+        "dEM": -0.065,
+        "b": 14,
+        "c": 79,
+        "d": 93,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.5068,
+        "em_incomplete": 0.1213,
+        "abstain_rate": 0.055,
+        "bare_cite": 0.031
+      },
+      "qwen": {
+        "em": 0.275,
+        "dEM": -0.031,
+        "b": 25,
+        "c": 56,
+        "d": 81,
+        "p": 0.0008,
+        "verdict": "SIGNIFICANT"
+      }
+    },
+    "knob1_ivf_nprobe1": {
+      "complete_frac": 0.116,
+      "llama": {
+        "em": 0.183,
+        "dEM": -0.144,
+        "b": 33,
+        "c": 177,
+        "d": 210,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.5603,
+        "em_incomplete": 0.1335,
+        "abstain_rate": 0.107,
+        "bare_cite": 0.028
+      },
+      "qwen": {
+        "em": 0.206,
+        "dEM": -0.1,
+        "b": 39,
+        "c": 139,
+        "d": 178,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT"
+      }
+    },
+    "knob2_pq_m192": {
+      "complete_frac": 0.572,
+      "llama": {
+        "em": 0.321,
+        "dEM": -0.006,
+        "b": 17,
+        "c": 23,
+        "d": 40,
+        "p": 0.4296,
+        "verdict": "NULL",
+        "em_complete": 0.4755,
+        "em_incomplete": 0.1145,
+        "abstain_rate": 0.057,
+        "bare_cite": 0.006
+      },
+      "qwen": {
+        "em": 0.306,
+        "dEM": 0.0,
+        "b": 17,
+        "c": 17,
+        "d": 34,
+        "p": 1.0,
+        "verdict": "NULL"
+      }
+    },
+    "knob2_pq_m64": {
+      "complete_frac": 0.527,
+      "llama": {
+        "em": 0.313,
+        "dEM": -0.014,
+        "b": 52,
+        "c": 66,
+        "d": 118,
+        "p": 0.2313,
+        "verdict": "NULL",
+        "em_complete": 0.4649,
+        "em_incomplete": 0.1438,
+        "abstain_rate": 0.052,
+        "bare_cite": 0.014
+      },
+      "qwen": {
+        "em": 0.306,
+        "dEM": 0.0,
+        "b": 47,
+        "c": 47,
+        "d": 94,
+        "p": 1.0,
+        "verdict": "NULL"
+      }
+    },
+    "knob2_pq_m48": {
+      "complete_frac": 0.498,
+      "llama": {
+        "em": 0.295,
+        "dEM": -0.032,
+        "b": 42,
+        "c": 74,
+        "d": 116,
+        "p": 0.0038,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.4799,
+        "em_incomplete": 0.1116,
+        "abstain_rate": 0.055,
+        "bare_cite": 0.013
+      },
+      "qwen": {
+        "em": 0.286,
+        "dEM": -0.02,
+        "b": 39,
+        "c": 59,
+        "d": 98,
+        "p": 0.0544,
+        "verdict": "NULL"
+      }
+    },
+    "knob2_pq_m32": {
+      "complete_frac": 0.423,
+      "llama": {
+        "em": 0.273,
+        "dEM": -0.054,
+        "b": 42,
+        "c": 96,
+        "d": 138,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.4728,
+        "em_incomplete": 0.1265,
+        "abstain_rate": 0.057,
+        "bare_cite": 0.009
+      },
+      "qwen": {
+        "em": 0.275,
+        "dEM": -0.031,
+        "b": 42,
+        "c": 73,
+        "d": 115,
+        "p": 0.0049,
+        "verdict": "SIGNIFICANT"
+      }
+    }
+  },
+  "retrieval": "replayed from Qwen's stored retrieved_ids per setting",
+  "rebuilt_index_diag": {
+    "faiss_now": "1.15.1",
+    "faiss_qwen_nb07": "1.15.0",
+    "retrieval_lists_differ": 65,
+    "complete_frac_rebuilt": 0.523,
+    "complete_frac_qwen_graph": 0.527,
+    "llama_em_on_rebuilt": 0.313
+  }
+}
