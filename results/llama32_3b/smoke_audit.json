@@ -1,0 +1,203 @@
+{
+  "snapshot": "0cb88a4f764b7a12671c53f0838cd831a0843b95",
+  "weights_gib": 5.98,
+  "attn_impl": "sdpa",
+  "smoke_regime1": {
+    "smoke_short": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        674,
+        399,
+        487
+      ],
+      "em16": 0.625,
+      "sec": 10.9
+    },
+    "smoke_explain": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        701,
+        426,
+        514
+      ],
+      "em16": 0.3125,
+      "sec": 40.4
+    },
+    "smoke_kv_n4": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        674,
+        399,
+        487
+      ],
+      "em16": 0.625,
+      "sec": 17.2
+    },
+    "smoke_kv_n2_g16": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        674,
+        399,
+        487
+      ],
+      "em16": 0.625,
+      "sec": 15.3
+    },
+    "smoke_topk_10": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        1476,
+        1583,
+        1745
+      ],
+      "em16": 0.5,
+      "sec": 19.1
+    },
+    "smoke_ev_sink": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        674,
+        399,
+        487
+      ],
+      "em16": 0.1875,
+      "sec": 12.9
+    },
+    "smoke_ev_attn": {
+      "rows": 16,
+      "retrieved_ids_match_qwen": true,
+      "prompt_tokens": [
+        674,
+        399,
+        487
+      ],
+      "em16": 0.5,
+      "sec": 14.3
+    }
+  },
+  "smoke_regime2": {
+    "rows": 16,
+    "retrieved_ids_match_qwen": true
+  },
+  "format_fix_dev200": {
+    "system_v1": "You answer questions using only the numbered context passages.\nOutput only the answer itself, copied as a minimal span from the passages. Never explain, never restate the question, never write a full sentence, and never answer with a passage number such as [1].\n\nExample question: Which city is home to the Eiffel Tower?\nExample answer: Paris",
+    "conditions": {
+      "frozen": {
+        "em": 0.265,
+        "f1": 0.3724,
+        "em_complete": 0.2717,
+        "em_incomplete": 0.2222,
+        "gap": 0.0495,
+        "bare_cite": 0.27,
+        "cite_prefixed": 0.11,
+        "words_mean": 3.17
+      },
+      "frozen+strip": {
+        "em": 0.275,
+        "f1": 0.3762,
+        "em_complete": 0.2832,
+        "em_incomplete": 0.2222,
+        "gap": 0.061,
+        "bare_cite": 0.27,
+        "cite_prefixed": 0.0,
+        "words_mean": 3.06
+      },
+      "v1": {
+        "em": 0.435,
+        "f1": 0.545,
+        "em_complete": 0.4682,
+        "em_incomplete": 0.2222,
+        "gap": 0.246,
+        "bare_cite": 0.0,
+        "cite_prefixed": 0.0,
+        "words_mean": 2.92
+      },
+      "v1+strip": {
+        "em": 0.435,
+        "f1": 0.545,
+        "em_complete": 0.4682,
+        "em_incomplete": 0.2222,
+        "gap": 0.246,
+        "bare_cite": 0.0,
+        "cite_prefixed": 0.0,
+        "words_mean": 2.92
+      }
+    },
+    "strip_on_qwen": {
+      "results/baseline_1k_results.csv": {
+        "rows": 1000,
+        "changed": 0,
+        "em_flips": 0
+      },
+      "results/regime2_a1_baseline_results.csv": {
+        "rows": 1000,
+        "changed": 0,
+        "em_flips": 0
+      },
+      "results/knob1_results.csv": {
+        "rows": 7000,
+        "changed": 0,
+        "em_flips": 0
+      },
+      "results/knob2_results.csv": {
+        "rows": 7000,
+        "changed": 0,
+        "em_flips": 0
+      },
+      "results/knob3_short_results.csv": {
+        "rows": 8000,
+        "changed": 0,
+        "em_flips": 0
+      },
+      "results/knob4_short_results.csv": {
+        "rows": 14000,
+        "changed": 0,
+        "em_flips": 0
+      },
+      "results/knob5_results.csv": {
+        "rows": 4000,
+        "changed": 0,
+        "em_flips": 0
+      }
+    }
+  },
+  "session1_cells_8_11": {
+    "note": "ran in session 1; kernel factory-reset before cell 14; values copied from its output",
+    "memory_peak_gib": {
+      "r1_short_k5_b16": 10.23,
+      "r1_short_k5_b16_kv_n4": 8.53,
+      "r1_short_k5_b16_kv_n2_g16": 8.37,
+      "r2_short_k5_b16": 9.75,
+      "r1_explain_k5_b16": 10.3,
+      "r1_short_k10_b16": "OOM",
+      "r1_short_k10_b8": 10.36
+    },
+    "fp16": {
+      "nonfinite_batches_dev200": 0,
+      "agree_fp16_fp32_b1_64": {
+        "llama": 0.984,
+        "qwen": 1.0
+      }
+    },
+    "eager_vs_sdpa_b1_diff_of_32": 1,
+    "dev200_short": {
+      "em": 0.265,
+      "f1": 0.372,
+      "em_complete": 0.272,
+      "em_incomplete": 0.222
+    },
+    "dev200_explain": {
+      "parse_rate": 0.825,
+      "trunc_rate": 0.165,
+      "decode_p50": 150.5,
+      "decode_p99": 256.0,
+      "em": 0.285
+    }
+  }
+}

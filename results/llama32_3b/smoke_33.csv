@@ -1,0 +1,220 @@
+setting,mode,qid,level,qtype,question,gold_answer,gold_ids,retrieved_ids,prediction,raw_generation,parsed_ok,prompt_tokens,decode_tokens,n_paragraphs
+smoke_short,short,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8,[1],,1,674,3,10
+smoke_short,short,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4,15 August 1843,,1,399,5,10
+smoke_short,short,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2,[2] Armenian,,1,487,4,10
+smoke_short,short,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2,A Centre of Excellence,,1,989,4,10
+smoke_short,short,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7,Saoirse Ronan,,1,570,5,10
+smoke_short,short,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3,[2],,1,868,3,10
+smoke_short,short,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0,Scott Adkins,,1,941,3,10
+smoke_short,short,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8,"""War & Peace""",,1,906,5,10
+smoke_short,short,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2,Midnight Oil,,1,622,3,10
+smoke_short,short,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3,1967,,1,1093,2,10
+smoke_short,short,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1,Captain John Underhill,,1,804,4,10
+smoke_short,short,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8,[2],,1,682,3,10
+smoke_short,short,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8,"[4] In this case, the attorney in question could only deduct traveling expenses from her gross income when the railroad's business forced attorney to travel and live temporarily",,1,765,32,10
+smoke_short,short,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7,Keelung,,1,666,3,10
+smoke_short,short,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9,[2],,1,619,3,10
+smoke_short,short,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3,an organ,,1,879,2,10
+smoke_explain,explain,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8,"This passage does not mention the location of the radar station, but it does mention that it was located in Sevastopol, which is on the Crimean Peninsula","[1] He is a retired three-star rank admiral in the Pakistan Navy, former diplomat, and a defence analyst.
+This passage helps answer the question by stating Iqbal F. Qadir's profession, but it does not specify the location of the radar station he participated in.
+
+[2] The B-71 radar station was an Army Air Force early warning station in World War II.
+This passage does not mention the location of the radar station, but it does mention that it was located on the western coast of America.
+
+[3] Mukachevo radar station was a Soviet radar station providing early warning of ballistic missile attack.
+This passage does not mention the location of the radar station, but it does mention that it was located in Ukraine.
+
+[4] No. 227 Radar Station RAAF was a Royal Australian Air Force radar station located at Yanchep, Western Australia.
+This passage does not mention the location of the radar station, but it does mention that it was located in Western Australia.
+
+[5] Sevastopol radar station was a Soviet radar station providing early warning of ballistic missile attack.
+This passage does not mention the location of the radar station, but it does mention that it was located in Sevastopol, which is on the Crimean Peninsula",0,701,256,10
+smoke_explain,explain,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4,1843,"[2] This passage states that Tivoli Gardens (or simply Tivoli) is a famous amusement park and pleasure garden in Copenhagen, Denmark, and that the park opened on 15 August 1843.
+
+[2] This passage also states that Tivoli Gardens (or simply Tivoli) is the second-oldest operating amusement park in the world, after Dyrehavsbakken in nearby Klampenborg, also in Denmark.
+
+This chain of reasoning connects the two useful passages, establishing that Tivoli Gardens is the park where Tivolis Koncertsal is located and that it opened in 1843.
+
+Answer: 1843",1,426,136,10
+smoke_explain,explain,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2,Armenia,"[1] Scout Tufankjian is an Armenian-American photojournalist and author based in Brooklyn, New York. She is well known for her photos of American President Barack Obama during his campaign leading up to his presidency. She is also known for her photojournalism work on the Armenian diaspora.
+[2] Art Laboe (born Arthur Egnoian on August 7, 1925) is an Armenian American disc jockey, songwriter, record producer, and radio station owner, generally credited with coining the term ""Oldies But Goodies"".
+
+This passage states that both Scout Tufankjian and Art Laboe are of Armenian ancestry.
+
+Answer: Armenia",1,514,136,10
+smoke_explain,explain,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2,Centre of Excellence,"[2] Wilmslow High School. Wilmslow High School is a mixed-sex 11–18 comprehensive secondary school in Wilmslow, Cheshire, and a designated Centre of Excellence. The school began in 1960 as a grammar school and gradually became a comprehensive school, becoming Wilmslow High School in 1991. Dr. James Pullé is the head teacher. The school is designated ""good"" by Ofsted.
+
+[2] This passage states that Wilmslow High School is designated as a Centre of Excellence and ""good"" by Ofsted.
+
+[2] This information helps answer the question as it states the school's designation.
+
+Answer: Centre of Excellence",1,1016,139,10
+smoke_explain,explain,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7,Saoirse Ronan,"[1] Ian McEwan self-adapted his own 2007 Booker Prize-nominated novella of the same name. 
+This passage helps answer the question as it mentions the film adaptation, which involves Billy Howle.
+
+[2] He also appeared in ""Dunkirk"". 
+This passage helps answer the question as it mentions another film that Billy Howle has appeared in, which is directed by a different director.
+
+[2] Howle will next be seen opposite Saoirse Ronan in the drama, ""On Chesil Beach"", in the adaptation of Anton Chekhov's iconic play, ""The Seagull"", and in Netflix film ""Outlaw King"".
+This passage directly answers the question, stating that Billy Howle will be seen opposite Saoirse Ronan in the upcoming British drama film directed by Dominic Cooke.
+
+Answer: Saoirse Ronan",1,597,175,10
+smoke_explain,explain,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3,This passage mentions that Danny DeVito stars,"[2] The Lorax (film). The Lorax (also known as Dr. Seuss' The Lorax) is a 2012 American 3D computer-animated musical fantasy–comedy film produced by Illumination Entertainment and based on Dr. Seuss's children's book of the same name. 
+This passage states that The Lorax is a 2012 animated film based on Dr. Seuss's book, and it was produced by Illumination Entertainment.
+
+[2] The Lorax (film). The film builds on the book by expanding the story of Ted, the previously unnamed boy who visits the Once-ler. 
+This passage mentions that the film expands on the story of Ted, the boy who visits the Once-ler, which is a character in the book.
+
+[1] Kool Kojak has written and produced for artists such as Dr. Seuss's The Lorax, 
+This passage states that Kool Kojak has written and produced for Dr. Seuss's The Lorax.
+
+[2] The Lorax (film). The cast includes Danny DeVito as the Lorax, Ed Helms as the Once-ler, and Zac Efron as Ted. 
+This passage mentions that Danny DeVito stars",0,895,256,10
+smoke_explain,explain,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0,"[4] Universal Soldier (1992 film). Universal Soldier is a 1992 American military science fiction action film directed by Roland Emmerich, produced by Mario Kassar and Allen Shapiro, and","[3] Scott Adkins. Scott Edward Adkins (born 17 June 1976) is an English actor and martial artist who is best known for playing Russian prison fighter Yuri Boyka in the 2006 film """" and its following two sequels: """" (2010) and """" (2016) and Casey Bowman in Ninja and its sequel. He is also known for playing Bradley Hume in ""Holby City"", Lucian in ""Doctor Strange"", Kiley in ""The Bourne Ultimatum"" and John in ""Zero Dark Thirty"".
+
+[2] Universal Soldier (franchise). The Universal Soldier franchise is a series of science fiction action films. The franchise began in 1992 with ""Universal Soldier"" and as of 2012 comprises six entries (some of which are now considered non-canon). The films centered on the character of Luc Deveraux (played first by Jean-Claude Van Damme and then by Matt Battaglia) until """", which focuses on a new protagonist named John (played by Scott Adkins).
+
+[4] Universal Soldier (1992 film). Universal Soldier is a 1992 American military science fiction action film directed by Roland Emmerich, produced by Mario Kassar and Allen Shapiro, and",0,968,256,10
+smoke_explain,explain,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8,War & Peace,"[2] Jack Lowden is a Scottish stage, television, and film actor who followed a highly successful and award-winning four-year stage career, his first major international onscreen success was in the 2016 BBC miniseries ""War & Peace"", which led to starring roles in feature films.
+
+[1] Tommy's Honour is a 2016 historical drama film depicting the lives and careers of, and the complex relationship between, the pioneering Scottish golfing champions Old Tom Morris and his son Young Tom Morris.
+
+This chain of reasoning connects the two passages, indicating that Jack Lowden's success in the 2016 BBC miniseries ""War & Peace"" led to his starring role in the 2016 historical drama film ""Tommy's Honour"".
+
+Answer: War & Peace",1,933,157,10
+smoke_explain,explain,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2,"[3] Read About It. ""Read About It","[2] Midnight Oil. Midnight Oil (also known informally as ""The Oils"" to fans) are an Australian rock band, who originally performed as Farm from 1972 with drummer Rob Hirst, bass guitarist Andrew James and keyboard player/lead guitarist Jim Moginie. While vocalist Peter Garrett was studying at Australian National University in Canberra, he answered an advertisement for a spot in Farm, and by 1975 the band was touring the east coast of Australia. By late 1976, Garrett moved to Sydney to complete his law degree, and Farm changed its name to Midnight Oil by drawing the name out of a hat.
+
+This passage helps answer the question as it states that Midnight Oil changed its name to Midnight Oil by drawing it out of a hat.
+
+[1] Switchfoot. Switchfoot is an American alternative rock band from San Diego, California. The band's members are Jon Foreman (lead vocals, guitar), Tim Foreman (bass guitar, backing vocals), Chad Butler (drums, percussion), Jerome Fontamillas (guitar, keyboards, backing vocals), and Drew Shirley (guitar, backing vocals).
+
+This passage does not provide any information about Switchfoot choosing its name.
+
+[3] Read About It. ""Read About It",0,649,256,10
+smoke_explain,explain,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3,1967,"[2] Daler Mehndi. Daler Singh, known by his stage name, ""Daler Mehndi"" (born 18 August 1967) is an Indian recording artist, musician, songwriter, author, record producer, performer and environmentalist.
+
+This passage helps answer the question as it states Daler Mehndi's birth year.
+
+[1] Tunak Tunak Tun. ""Tunak Tunak Tun"" (Punjabi: ਤੁਣਕ ਤੁਣਕ ਤੁਣ ) or simply ""Tunak"", is a bhangra/pop love song by Indian artist Daler Mehndi released in 1998.
+
+This passage helps confirm the question as it mentions Daler Mehndi's birth year and the release year of the song ""Tunak"".
+
+Answer: 1967",1,1120,181,10
+smoke_explain,explain,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1,John Underhill,"[2] The Pound Ridge massacre was a battle of Kieft's War that took place in March 1644 between the forces of New Netherland and members of the Wappinger Confederacy at a Wappinger Confederacy village in the present-day town of Pound Ridge, New York. A mixed force of 130 Dutch and English soldiers led by Captain John Underhill launched a night attack on the village and destroyed it with fire. 500 to 700 members of the Wappinger Confederacy were killed while the New Netherland force lost one man killed and fifteen wounded.
+
+[2] helps answer the question as it states that Captain John Underhill led the attack that resulted in more casualties than any other incident in the war.
+
+This passage connects to [1] as it mentions Kieft's War, which is the conflict described in [1].
+
+Answer: John Underhill",1,831,181,10
+smoke_explain,explain,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8,[4] Wisdom (film). Wisdom is a 1986 American romantic crime film written and directed by its star Emilio Estevez in his filmm,"[1] The film is made up of four short films based on urban legends; the first concerns a woman who encounters a killer in the backseat of her car; the second concerns a video game-addicted teenager who is consumed by his game; the third focuses on a fallen priest who is stalked by a pickup truck from hell; and the last follows a suburban family battling a giant rat in their home.
+
+[2] Emilio Estevez ( ; born May 12, 1962) is an American actor, director, and writer. He started his career as an actor and is well known for being a member of the acting Brat Pack of the 1980s, starring in ""The Breakfast Club"", ""St. Elmo's Fire"", and also acting in the 1983 hit movie ""The Outsiders"". He is also known for ""Repo Man"", ""The Mighty Ducks"" and its sequels, ""Stakeout"", ""Maximum Overdrive"", ""Bobby"" (which he also wrote and directed), and his performances in Western films such as ""Young Guns"" and its sequel.
+
+[4] Wisdom (film). Wisdom is a 1986 American romantic crime film written and directed by its star Emilio Estevez in his filmm",0,709,256,10
+smoke_explain,explain,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8,criminal defense,"[1] This passage does not mention the concept of the business Eric S. Pistorius worked for after being an attorney.
+[2] This passage does not mention Eric S. Pistorius working for a business.
+[3] This passage mentions that Eliot Spitzer, who was a lawyer and attorney, worked for a business (the state of New York) and also mentions that Eric S. Pistorius specialized in personal injury, litigation, criminal defense, and collections, which could be related to working for a business.
+ 
+Answer: criminal defense",1,792,113,10
+smoke_explain,explain,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7,Keelung,"[2] This passage states that Taipei City is about 25 km southwest of the northern port city Keelung.
+
+[2] This passage also states that most of the city is located on the Taipei Basin, an ancient lakebed bounded by the two relatively narrow valleys of the Keelung and Xindian rivers, which join to form the Tamsui River along the city's western border.
+
+[2] This passage states that Taipei City is an enclave of the municipality of New Taipei City, and that it is about 25 km southwest of the northern port city Keelung.
+
+Answer: Keelung",1,693,124,10
+smoke_explain,explain,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9,"[5] This passage does not provide information about Roger-Vasselin's achievements, but it does state that Roger-Vasselin lost in the first round to Marcus Daniell and Marcelo Demoliner. This passage helps answer the question by providing","[1] This passage states that Édouard Roger-Vasselin won the men's doubles title at Roland Garros in 2014, partnering Julien Benneteau. This passage helps answer the question by providing information about Roger-Vasselin's achievements.
+ 
+[2] This passage states that Stefan Edberg won six Grand Slam singles titles and three Grand Slam men's doubles titles between 1985 and 1996. This passage helps answer the question by providing information about Edberg's achievements.
+
+[3] This passage does not provide information about Roger-Vasselin's achievements, but it does state that Edberg leads the series 14–13 against Ivan Lendl. This passage helps answer the question by providing information about Edberg's rivalry with Lendl.
+
+[4] This passage does not provide information about Roger-Vasselin's achievements, but it does state that Edberg won all three of their Davis Cup matches against Boris Becker. This passage helps answer the question by providing information about Edberg's achievements.
+
+[5] This passage does not provide information about Roger-Vasselin's achievements, but it does state that Roger-Vasselin lost in the first round to Marcus Daniell and Marcelo Demoliner. This passage helps answer the question by providing",0,646,256,10
+smoke_explain,explain,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3,This passage helps answer the question,"[1] Xyloband. Xylobands are wristbands that contain light-emitting diodes and radio frequency receivers. The lights inside the wristband can be controlled by a software program, which sends signals to the wristband, instructing it to light up or blink, for example. The RGB version has a white strap and can emit any colour on the spectrum. The single colour version is available in green, blue, yellow, red, pink and white. The first use of Xylobands on a large scale was on Coldplay's 2012 Mylo Xyloto tour. A Xyloband was given to each member of the audience, and as the concert played, the flashing of the bands was synchronized to the music. The inventor of the wristbands, Jason Regler, stated that he had the idea for the flashing wristbands while at a Coldplay concert, during the song ""Fix You"".
+
+[2] Fix You. ""Fix You"" is a song by British rock band Coldplay. It was written by all four members of the band for their third studio album, ""X&Y"" (2005). The track is built around an organ accompanied by slow tempo drums and vocals.
+
+This passage helps answer the question",0,906,256,10
+smoke_kv_n4,short,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8,[1],,1,674,3,10
+smoke_kv_n4,short,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4,15 August 1843,,1,399,5,10
+smoke_kv_n4,short,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2,[2] [1],,1,487,6,10
+smoke_kv_n4,short,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2,A Centre of Excellence,,1,989,4,10
+smoke_kv_n4,short,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7,Saoirse Ronan,,1,570,5,10
+smoke_kv_n4,short,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3,[2],,1,868,3,10
+smoke_kv_n4,short,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0,Scott Adkins,,1,941,3,10
+smoke_kv_n4,short,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8,"""War & Peace""",,1,906,5,10
+smoke_kv_n4,short,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2,Midnight Oil,,1,622,3,10
+smoke_kv_n4,short,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3,1967,,1,1093,2,10
+smoke_kv_n4,short,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1,Captain John Underhill,,1,804,4,10
+smoke_kv_n4,short,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8,[2],,1,682,3,10
+smoke_kv_n4,short,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8,"[4] In this case, the attorney in question could only deduct traveling expenses from her gross income when the railroad's business forced attorney to travel and live temporarily",,1,765,32,10
+smoke_kv_n4,short,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7,Keelung,,1,666,3,10
+smoke_kv_n4,short,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9,[2],,1,619,3,10
+smoke_kv_n4,short,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3,an organ,,1,879,2,10
+smoke_kv_n2_g16,short,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8,[1],,1,674,3,10
+smoke_kv_n2_g16,short,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4,15 August 1843,,1,399,5,10
+smoke_kv_n2_g16,short,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2,[2],,1,487,3,10
+smoke_kv_n2_g16,short,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2,A Centre of Excellence,,1,989,4,10
+smoke_kv_n2_g16,short,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7,Saoirse Ronan,,1,570,5,10
+smoke_kv_n2_g16,short,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3,[2],,1,868,3,10
+smoke_kv_n2_g16,short,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0,Scott Adkins,,1,941,3,10
+smoke_kv_n2_g16,short,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8,"""War & Peace""",,1,906,5,10
+smoke_kv_n2_g16,short,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2,Midnight Oil,,1,622,3,10
+smoke_kv_n2_g16,short,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3,1967,,1,1093,2,10
+smoke_kv_n2_g16,short,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1,Captain John Underhill,,1,804,4,10
+smoke_kv_n2_g16,short,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8,[2],,1,682,3,10
+smoke_kv_n2_g16,short,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8,[4],,1,765,3,10
+smoke_kv_n2_g16,short,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7,Keelung,,1,666,3,10
+smoke_kv_n2_g16,short,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9,[2],,1,619,3,10
+smoke_kv_n2_g16,short,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3,an organ,,1,879,2,10
+smoke_topk_10,short,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8 1 0 5 2 7,A three-star rank admiral,,1,1476,6,10
+smoke_topk_10,short,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4 2 6 5 7 3,15 August 1843,,1,1583,5,10
+smoke_topk_10,short,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2 1 9 6 3 4,Armenia,,1,1745,3,10
+smoke_topk_10,short,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2 5 8 9 7 4,a mixed-sex 11–18 comprehensive secondary school,,1,1895,10,10
+smoke_topk_10,short,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7 2 3 1 8 6,Saoirse Ronan,,1,1495,5,10
+smoke_topk_10,short,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3 7 9 2 8 4,Dr. Seuss' The Lorax,,1,1660,8,10
+smoke_topk_10,short,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0 4 2 9 6 7,Scott Adkins,,1,1913,3,10
+smoke_topk_10,short,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8 7 4 1 9 5,"""War & Peace""",,1,1687,5,10
+smoke_topk_10,short,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2 0 1 3 6 9,Midnight Oil,,1,1405,3,10
+smoke_topk_10,short,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3 6 8 7 0 4,1967,,1,1679,2,10
+smoke_topk_10,short,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1 3 6 7 5 0,Captain John Underhill,,1,1567,4,10
+smoke_topk_10,short,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8 6 9 1 3 7,[2],,1,1259,3,10
+smoke_topk_10,short,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8 3 4 6 1 9,None mentioned,,1,1638,2,10
+smoke_topk_10,short,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7 8 0 4 1 3,Keelung,,1,1057,3,10
+smoke_topk_10,short,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9 1 8 5 3 4,[2] He also won the Masters Grand Prix and was a part of the Swedish Davis Cup-winning-team four times. In addition he won four Masters Series titles,,1,1012,32,10
+smoke_topk_10,short,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3 9 0 4 2 5,"""Fix You""",,1,1698,4,10
+smoke_ev_sink,short,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8,[None of the provided text mentions the Okhamandal Peninsula or Iqbal F. Qadir's participation in an attack on a radar station located on its,,1,674,32,10
+smoke_ev_sink,short,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4,15,,1,399,1,10
+smoke_ev_sink,short,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2,[5],,1,487,3,10
+smoke_ev_sink,short,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2,A centre of excellence,,1,989,4,10
+smoke_ev_sink,short,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7,Saoirse Ronan,,1,570,5,10
+smoke_ev_sink,short,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3,[2],,1,868,3,10
+smoke_ev_sink,short,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0,Scott,,1,941,1,10
+smoke_ev_sink,short,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8,"""Grey's Anatomy""",,1,906,5,10
+smoke_ev_sink,short,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2,Midnight Oil,,1,622,3,10
+smoke_ev_sink,short,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3,1965,,1,1093,2,10
+smoke_ev_sink,short,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1,Captain of the New Netherland force: one man killed and fifteen wounded,,1,804,15,10
+smoke_ev_sink,short,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8,[4],,1,682,3,10
+smoke_ev_sink,short,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8,None mentioned,,1,765,2,10
+smoke_ev_sink,short,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7,Keelce,,1,666,3,10
+smoke_ev_sink,short,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9,[4] Becker–Edberg rivalry,,1,619,8,10
+smoke_ev_sink,short,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3,an octobass,,1,879,4,10
+smoke_ev_attn,short,5a7a567255429941d65f25bd,hard,bridge,What was Iqbal F. Qadir on when he participated in an attack on a radar station located on western shore of the Okhamandal Peninsula?,flotilla,5 9,9 6 4 3 8,[1] Vice Admiral,,1,674,5,10
+smoke_ev_attn,short,5abca1a55542993a06baf937,hard,bridge,When did the park at which Tivolis Koncertsal is located open?,15 August 1843,0 1,0 1 9 8 4,15 August,,1,399,2,10
+smoke_ev_attn,short,5a73977d554299623ed4ac08,hard,comparison,What is the shared country of ancestry between Art Laboe and Scout Tufankjian?,Armenian,0 8,8 0 5 7 2,[2] Armenian,,1,487,4,10
+smoke_ev_attn,short,5ab514c05542991779162d72,hard,bridge,The school in which the Wilmslow Show is held is designated as what?,Centre of Excellence,1 3,3 1 6 0 2,A Centre of Excellence,,1,989,4,10
+smoke_ev_attn,short,5add2b435542990d50227e11,hard,bridge,Who will Billy Howle be seen opposite in the upcoming British drama film directed by Dominic Cooke?,Saoirse Ronan,0 5,0 5 4 9 7,Saoirse Ronan,,1,570,5,10
+smoke_ev_attn,short,5a88d6df554299206df2b377,hard,bridge,"What animated movie, starring Danny Devito, featured music written and produced by Kool Kojak?",The Lorax,5 6,5 6 1 0 3,[2],,1,868,3,10
+smoke_ev_attn,short,5ae6b6065542991bbc976168,hard,bridge,"Out of the actors who have played the role of Luc Deveraux in the Universal Soldier franchise, which actor has also starred in the movies Holby City, Doctor Strange, the Bourne Ultimatum and Zero Dark Thirty?",Scott Adkins,1 8,5 1 8 3 0,Scott Adkins,,1,941,3,10
+smoke_ev_attn,short,5ae531ee5542990ba0bbb1ff,hard,bridge,Tommy's Honour was a drama film that included the actor who found success with what 2016 BBC miniseries?,War & Peace,0 6,0 6 3 2 8,"""War and Peace""",,1,906,5,10
+smoke_ev_attn,short,5a8aa5835542996c9b8d5f4e,hard,comparison,"Which rock band chose its name by drawing it out of a hat, Switchfoot or Midnight Oil?",Midnight Oil,5 8,5 8 7 4 2,Midnight Oil,,1,622,3,10
+smoke_ev_attn,short,5ab82d095542990e739ec853,hard,bridge,"""Tunak"", is a bhangra/pop love song by an artist born in which year ?",1967,1 2,1 2 5 9 3,1967,,1,1093,2,10
+smoke_ev_attn,short,5ae4c01e55429913cc2044f3,hard,bridge,Which Captain launched the attack which led to more casualties than any other incident in the war fought between the settlers of the nascent colony of New Netherland and the native Lenape population?,Captain John Underhill,2 4,2 4 9 8 1,Captain John Underhill,,1,804,4,10
+smoke_ev_attn,short,5a89fea655429970aeb701eb,hard,bridge,In which film did Emilio Estevez star in in the same year as Nightmares,The Outsiders,4 5,5 4 0 2 8,[2],,1,682,3,10
+smoke_ev_attn,short,5a80cf4c55429938b61421f6,hard,bridge,What was the concept of the business Eric S .Pistorius worked for after being an attorney?,to ensure wide visibility and understanding of cases in a region,1 5,5 7 2 0 8,"[4] In order to deduct traveling expenses, the expense must be incurred while away from home, and be a reasonable expense necessary or appropriate to the development or",,1,765,32,10
+smoke_ev_attn,short,5a89b1de5542992e4fca8378,hard,bridge,Which port city lies approximately 25 km north of the Lingnan Fine Arts Museum?,Keelung,6 9,9 6 5 2 7,Keelung,,1,666,3,10
+smoke_ev_attn,short,5a8778d25542994846c1cd89,hard,comparison,Has Stefan Edberg won more events than Édouard Roger-Vasselin?,yes,6 7,6 7 2 0 9,"[2] Stefan Bengt Edberg won six Grand Slam singles titles, while [5] Édouard Roger-Vasselin won one Grand Slam doubles title",,1,619,32,10
+smoke_ev_attn,short,5a77897f55429949eeb29edc,hard,bridge,"Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",an organ,6 8,6 8 1 7 3,an organ,,1,879,2,10
