@@ -199,5 +199,27 @@
       "decode_p99": 256.0,
       "em": 0.285
     }
+  },
+  "smoke_short_v1": {
+    "bare_cite_of_16": 0,
+    "em16": 0.75,
+    "predictions": [
+      "None",
+      "15 August 1843",
+      "Armenia",
+      "a Centre of Excellence",
+      "Saoirse Ronan",
+      "Dr. Seuss' The Lorax",
+      "Scott Adkins",
+      "War & Peace",
+      "Midnight Oil",
+      "1967",
+      "Captain John Underhill",
+      "The Outsiders",
+      "Personal injury, litigation, criminal defense, and collections",
+      "Keelung",
+      "Yes",
+      "an organ"
+    ]
   }
 }
