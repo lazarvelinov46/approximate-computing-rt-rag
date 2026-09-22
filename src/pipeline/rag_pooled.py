@@ -141,8 +141,8 @@ def run_pipeline_pooled(
         embedder = E.load_embedder(cfg["models"]["embedder"])
     if generator is None or gen_tok is None:
         generator, gen_tok = G.load_generator(cfg["models"]["generator"])
-        from src.config import check_out_path
-        check_out_path(out_csv, generator.config.name_or_path)
+    from src.config import check_out_path
+    check_out_path(out_csv, generator.config.name_or_path)
     if gold_global is None:
         gold_global = C.resolve_gold(corpus, examples)
 

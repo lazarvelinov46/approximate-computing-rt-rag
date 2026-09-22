@@ -198,8 +198,8 @@ def run_pipeline(
         embedder = E.load_embedder(cfg["models"]["embedder"])
     if generator is None or gen_tok is None:
         generator, gen_tok = G.load_generator(cfg["models"]["generator"])
-        from src.config import check_out_path
-        check_out_path(out_csv, generator.config.name_or_path)
+    from src.config import check_out_path
+    check_out_path(out_csv, generator.config.name_or_path)
 
     t0 = time.time()
     retrieved = retrieve_all(embedder, examples, top_k, progress=progress)
