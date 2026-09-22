@@ -1,0 +1,320 @@
+{
+  "versions": {
+    "transformers": "5.0.0",
+    "tokenizers": "0.22.2",
+    "torch": "2.10.0+cpu",
+    "hqq": "0.2.8.post1",
+    "faiss-cpu": "1.15.1",
+    "sentence-transformers": "5.4.1",
+    "datasets": "5.0.0"
+  },
+  "qwen_identity": {
+    "r1_short_k5": {
+      "string": 0,
+      "prompt_tokens": 0,
+      "ids": 0,
+      "decode_tokens": 0
+    },
+    "r1_explain_k5": {
+      "string": 0,
+      "prompt_tokens": 0,
+      "ids": 0,
+      "decode_tokens": 0
+    },
+    "r1_short_k10": {
+      "string": 0,
+      "prompt_tokens": 0,
+      "ids": 0,
+      "decode_tokens": 0
+    },
+    "r2_short_k5": {
+      "string": 0,
+      "prompt_tokens": 0,
+      "ids": 0,
+      "decode_tokens": 0
+    }
+  },
+  "llama_tokenizer": {
+    "bos": "<|begin_of_text|>",
+    "eos": "<|eot_id|>",
+    "pad": "<|eot_id|>",
+    "generation_eos": [
+      128001,
+      128008,
+      128009
+    ],
+    "bos_old": 2,
+    "bos_new": 1,
+    "date_string": "26 Jul 2024"
+  },
+  "geometry": {
+    "Qwen2.5-3B-Instruct": {
+      "n_layers": 36,
+      "n_kv_heads": 2,
+      "q_per_kv": 8,
+      "head_dim": 128,
+      "kv_bytes_per_token": 36864
+    },
+    "Llama-3.2-3B-Instruct": {
+      "n_layers": 28,
+      "n_kv_heads": 8,
+      "q_per_kv": 3,
+      "head_dim": 128,
+      "kv_bytes_per_token": 114688
+    }
+  },
+  "lengths": [
+    {
+      "set": "r1_short_k2",
+      "model": "qwen",
+      "mean": 334.7,
+      "p50": 324,
+      "p99": 590,
+      "max": 690,
+      "worst_chunk_b16": 690,
+      "kv_gib_worst": 0.4
+    },
+    {
+      "set": "r1_short_k2",
+      "model": "llama",
+      "mean": 343.9,
+      "p50": 335,
+      "p99": 587,
+      "max": 678,
+      "worst_chunk_b16": 678,
+      "kv_gib_worst": 1.21
+    },
+    {
+      "set": "r1_short_k3",
+      "model": "qwen",
+      "mean": 468.9,
+      "p50": 456,
+      "p99": 790,
+      "max": 1135,
+      "worst_chunk_b16": 1135,
+      "kv_gib_worst": 0.64
+    },
+    {
+      "set": "r1_short_k3",
+      "model": "llama",
+      "mean": 471.6,
+      "p50": 461,
+      "p99": 779,
+      "max": 1073,
+      "worst_chunk_b16": 1073,
+      "kv_gib_worst": 1.89
+    },
+    {
+      "set": "r1_short_k5",
+      "model": "qwen",
+      "mean": 744.0,
+      "p50": 726,
+      "p99": 1203,
+      "max": 1524,
+      "worst_chunk_b16": 1524,
+      "kv_gib_worst": 0.85
+    },
+    {
+      "set": "r1_short_k5",
+      "model": "llama",
+      "mean": 734.2,
+      "p50": 718,
+      "p99": 1173,
+      "max": 1444,
+      "worst_chunk_b16": 1444,
+      "kv_gib_worst": 2.52
+    },
+    {
+      "set": "r1_short_k10",
+      "model": "qwen",
+      "mean": 1519.0,
+      "p50": 1479,
+      "p99": 2626,
+      "max": 2953,
+      "worst_chunk_b16": 2953,
+      "kv_gib_worst": 1.64
+    },
+    {
+      "set": "r1_short_k10",
+      "model": "llama",
+      "mean": 1474.4,
+      "p50": 1437,
+      "p99": 2487,
+      "max": 2966,
+      "worst_chunk_b16": 2966,
+      "kv_gib_worst": 5.12
+    },
+    {
+      "set": "r1_explain_k5",
+      "model": "qwen",
+      "mean": 771.0,
+      "p50": 753,
+      "p99": 1230,
+      "max": 1551,
+      "worst_chunk_b16": 1551,
+      "kv_gib_worst": 0.99
+    },
+    {
+      "set": "r1_explain_k5",
+      "model": "llama",
+      "mean": 761.2,
+      "p50": 745,
+      "p99": 1200,
+      "max": 1471,
+      "worst_chunk_b16": 1471,
+      "kv_gib_worst": 2.95
+    },
+    {
+      "set": "r2_short_k5",
+      "model": "qwen",
+      "mean": 761.1,
+      "p50": 749,
+      "p99": 1178,
+      "max": 1325,
+      "worst_chunk_b16": 1325,
+      "kv_gib_worst": 0.75
+    },
+    {
+      "set": "r2_short_k5",
+      "model": "llama",
+      "mean": 748.7,
+      "p50": 741,
+      "p99": 1142,
+      "max": 1277,
+      "worst_chunk_b16": 1277,
+      "kv_gib_worst": 2.24
+    }
+  ],
+  "rope": {
+    "rope_parameters": {
+      "factor": 32.0,
+      "high_freq_factor": 4.0,
+      "low_freq_factor": 1.0,
+      "original_max_position_embeddings": 8192,
+      "rope_type": "llama3",
+      "rope_theta": 500000.0
+    },
+    "n_scaled_freqs": 35,
+    "S": 1444,
+    "err_nb22_positions": 2.205371856689453e-06,
+    "err_llama3_study_scale": 0.0003256797790527344,
+    "err_qwen_study_scale": 0.00027292966842651367
+  },
+  "eviction_tiny_llama": {
+    "recency": {
+      "budget": 32,
+      "stored": 32,
+      "evicted": 43,
+      "rotations": 0,
+      "phase_ok": true,
+      "deterministic": true
+    },
+    "sink_recent": {
+      "budget": 32,
+      "stored": 32,
+      "evicted": 43,
+      "rotations": 12,
+      "phase_ok": true,
+      "deterministic": true
+    },
+    "random": {
+      "budget": 32,
+      "stored": 32,
+      "evicted": 43,
+      "rotations": 11,
+      "phase_ok": true,
+      "deterministic": true
+    },
+    "attention": {
+      "budget": 32,
+      "stored": 32,
+      "evicted": 43,
+      "rotations": 11,
+      "phase_ok": true,
+      "deterministic": true,
+      "scores_finite": true,
+      "layer_keepsets_differ": true
+    }
+  },
+  "knob3": {
+    "alignment": {
+      "Llama-3.2-3B-Instruct_g32": {
+        "frac_true_per_channel": 1.0,
+        "misaligned_batches": []
+      },
+      "Llama-3.2-3B-Instruct_g16": {
+        "frac_true_per_channel": 1.0,
+        "misaligned_batches": []
+      },
+      "Qwen2.5-3B-Instruct_g32": {
+        "frac_true_per_channel": 1.0,
+        "misaligned_batches": []
+      },
+      "Qwen2.5-3B-Instruct_g16": {
+        "frac_true_per_channel": 1.0,
+        "misaligned_batches": []
+      }
+    },
+    "hqq_llama": {
+      "kv_hqq_n8_g32_r512": {
+        "rmse": [
+          0.01603,
+          0.01603
+        ],
+        "chan_per_group": [
+          1,
+          1
+        ],
+        "eff_bits": 9.0
+      },
+      "kv_hqq_n4_g32_r512": {
+        "rmse": [
+          0.28115,
+          0.28083
+        ],
+        "chan_per_group": [
+          1,
+          1
+        ],
+        "eff_bits": 5.0
+      },
+      "kv_hqq_n3_g32_r512": {
+        "rmse": [
+          0.60793,
+          0.60743
+        ],
+        "chan_per_group": [
+          1,
+          1
+        ],
+        "eff_bits": 5.0
+      },
+      "kv_hqq_n2_g32_r512": {
+        "rmse": [
+          1.43144,
+          1.43086
+        ],
+        "chan_per_group": [
+          1,
+          1
+        ],
+        "eff_bits": 3.0
+      },
+      "kv_hqq_n2_g16_r512": {
+        "rmse": [
+          1.18602,
+          1.18654
+        ],
+        "chan_per_group": [
+          1,
+          1
+        ],
+        "eff_bits": 4.0
+      }
+    },
+    "control_qwen_b8_g32": [
+      0.28221049904823303,
+      0.3278343081474304
+    ]
+  }
+}
