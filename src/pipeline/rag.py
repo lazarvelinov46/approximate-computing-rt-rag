@@ -200,6 +200,7 @@ def run_pipeline(
         generator, gen_tok = G.load_generator(cfg["models"]["generator"])
     from src.config import check_out_path
     check_out_path(out_csv, generator.config.name_or_path)
+    system = G.system_for(generator.config.name_or_path, mode)
 
     t0 = time.time()
     retrieved = retrieve_all(embedder, examples, top_k, progress=progress)

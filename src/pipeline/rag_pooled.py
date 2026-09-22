@@ -143,6 +143,7 @@ def run_pipeline_pooled(
         generator, gen_tok = G.load_generator(cfg["models"]["generator"])
     from src.config import check_out_path
     check_out_path(out_csv, generator.config.name_or_path)
+    system = G.system_for(generator.config.name_or_path, mode)
     if gold_global is None:
         gold_global = C.resolve_gold(corpus, examples)
 

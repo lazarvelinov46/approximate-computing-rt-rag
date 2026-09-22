@@ -82,6 +82,28 @@ def kv_geometry(config) -> dict:
         "kv_bytes_per_token": 2 * n_layers * n_kv * head_dim * 2,
     }
 
+# --- per-generator short-mode system prompt --------------------------------
+# Under SYSTEM, Llama-3.2-3B answered 27% of dev-200 with a bare passage number
+# ("[1]") and 11% citation-prefixed, flattening its evidence sensitivity
+# (em_complete - em_incomplete 0.050 vs Qwen's 0.312). One added clause removes
+# both (0.000 / 0.000) and restores it (0.246); dev EM 0.265 -> 0.435.
+# Notebook 33 cell 15. Qwen models keep the frozen SYSTEM unchanged.
+SYSTEM_NO_CITE = SYSTEM.replace(
+    "never write a full sentence.",
+    "never write a full sentence, and never answer with a passage number such as [1].")
+assert SYSTEM_NO_CITE != SYSTEM
+
+SYSTEM_BY_GENERATOR = {
+    "meta-llama/Llama-3.2-3B-Instruct": SYSTEM_NO_CITE,
+}
+
+
+def system_for(generator: str, mode: str) -> str:
+    """System prompt for this generator and regime. Explain is shared."""
+    if mode == "explain":
+        return SYSTEM_EXPLAIN
+    return SYSTEM_BY_GENERATOR.get(generator, SYSTEM)
+
 
 def parse_answer(text: str) -> Tuple[str, bool]:
     """Extract the marked answer span -> (answer, parsed_ok).
