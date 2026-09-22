@@ -1,0 +1,87 @@
+{
+  "model": "meta-llama/Llama-3.2-3B-Instruct",
+  "snapshot": "0cb88a4f764b7a12671c53f0838cd831a0843b95",
+  "system_short": "You answer questions using only the numbered context passages.\nOutput only the answer itself, copied as a minimal span from the passages. Never explain, never restate the question, never write a full sentence, and never answer with a passage number such as [1].\n\nExample question: Which city is home to the Eiffel Tower?\nExample answer: Paris",
+  "decisions": [
+    "short mode uses SYSTEM_NO_CITE (dev-200: bare citations 0.270 -> 0.000, gap 0.050 -> 0.246); STRIP not adopted (no effect under it, 0 Qwen changes)",
+    "knob 5 k=10 at batch 8 with topk_05_b8 control (b16 OOM, b8 peak 10.36 GiB)",
+    "attention settings referenced to evict_none_b1_eager (eager vs sdpa 1/32 at b1)",
+    "explain arm dropped (dev-200: trunc 0.165, parse 0.825 at the frozen 256 cap)"
+  ],
+  "settings": {
+    "baseline": {
+      "em": 0.436,
+      "f1": 0.5672,
+      "recall@5": 0.916,
+      "complete_frac": 0.838,
+      "em_complete": 0.4928,
+      "em_incomplete": 0.142,
+      "em_bridge": 0.4319,
+      "em_comparison": 0.4531,
+      "abstain_rate": 0.021,
+      "gap": 0.3508,
+      "bare_cite": 0.009,
+      "decode_mean": 4.27
+    },
+    "regime2_a1_baseline": {
+      "em": 0.327,
+      "f1": 0.4454,
+      "recall@5": 0.768,
+      "complete_frac": 0.573,
+      "em_complete": 0.4764,
+      "em_incomplete": 0.1265,
+      "em_bridge": 0.302,
+      "em_comparison": 0.4323,
+      "abstain_rate": 0.05,
+      "gap": 0.3499,
+      "bare_cite": 0.011,
+      "decode_mean": 4.74
+    },
+    "evict_none_b1": {
+      "identity_vs_baseline": 0.994,
+      "em": 0.435,
+      "f1": 0.5676,
+      "recall@5": 0.916,
+      "complete_frac": 0.838,
+      "em_complete": 0.4916,
+      "em_incomplete": 0.142,
+      "em_bridge": 0.4307,
+      "em_comparison": 0.4531,
+      "abstain_rate": 0.021,
+      "gap": 0.3496,
+      "bare_cite": 0.009,
+      "decode_mean": 4.27
+    },
+    "evict_none_b1_eager": {
+      "identity_vs_baseline": 0.996,
+      "em": 0.436,
+      "f1": 0.5678,
+      "recall@5": 0.916,
+      "complete_frac": 0.838,
+      "em_complete": 0.4928,
+      "em_incomplete": 0.142,
+      "em_bridge": 0.4319,
+      "em_comparison": 0.4531,
+      "abstain_rate": 0.021,
+      "gap": 0.3508,
+      "bare_cite": 0.009,
+      "decode_mean": 4.25
+    }
+  },
+  "mcnemar": {
+    "baseline_vs_evict_none_b1": {
+      "b": 1,
+      "c": 2,
+      "d": 3,
+      "p": 1.0,
+      "verdict": "UNINFORMATIVE"
+    },
+    "evict_none_b1_vs_eager": {
+      "b": 2,
+      "c": 1,
+      "d": 3,
+      "p": 1.0,
+      "verdict": "UNINFORMATIVE"
+    }
+  }
+}
