@@ -152,7 +152,12 @@ def boundary_mib(tab: pd.DataFrame):
     t = tab.sort_values("compression").reset_index(drop=True)
     for i, r in t.iterrows():
         if r["verdict"] == SIGNIFICANT and r["c"] > r["b"]:
-            return float(t.loc[i - 1, "corpus_mib"]) if i > 0 else None
+            # Midpoint in log space between the last passing setting and the
+            # first loss: the boundary lies between them, not on either point.
+            if i == 0:
+                return None
+            lo, hi = float(t.loc[i, "corpus_mib"]), float(t.loc[i - 1, "corpus_mib"])
+            return float(np.sqrt(lo * hi))
     return None
 
 
@@ -265,8 +270,10 @@ def fig_knob1_curves(m: dict, out_path: Path) -> None:
     ax[2].set_title("(c) quality vs work  (band = ±1 SE)")
     ax[2].legend(fontsize=8); ax[2].grid(alpha=.3)
 
+    n_gpu = len(hn) + len(iv)
     fig.suptitle("Knob 1 — search effort, A1 pooled corpus (66,581 passages), short mode"
-                 f" · {DISPLAY[m['tag']]}")
+                 f" · {DISPLAY[m['tag']]}\n(a) retrieval-only sweep, generator-independent"
+                 f" · (b, c) the {n_gpu} settings generated with this model", fontsize=11)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -316,8 +323,10 @@ def fig_knob2_curves(m: dict, out_path: Path) -> None:
     ax[2].set_title("(c) quality vs memory  (red: significance boundary)")
     ax[2].legend(fontsize=8); ax[2].grid(alpha=.3)
 
+    n_gpu = len(pq_) + len(sq_)
     fig.suptitle("Knob 2 — embedding precision, A1 corpus (66,581 passages), short mode"
-                 f" · {DISPLAY[m['tag']]}")
+                 f" · {DISPLAY[m['tag']]}\n(a, b) retrieval-only sweep, generator-independent"
+                 f" · (c) the {n_gpu} settings generated with this model", fontsize=11)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -546,8 +555,10 @@ def self_test() -> int:
     # The knob-2 boundary rule must reproduce notebook 08's line at m48 (3.0 MiB).
     n_checks += 1
     bm = boundary_mib(q["tables"][2])
-    if bm is None or abs(bm - 3.05) > 0.05:
-        fails.append(f"knob-2 boundary at {bm} MiB; notebook 08 drew it at 3.0 (m48)")
+    want = float(np.sqrt(2.0 * 3.0))     # midpoint between m32 (2.0) and m48 (3.0)
+    if bm is None or abs(bm - want) > 0.02:
+        fails.append(f"knob-2 boundary at {bm} MiB; expected {want:.3f}, between "
+                     f"m48 (3.0, last non-loss) and m32 (2.0, first loss)")
 
     for f in fails:
         print(f"FAIL  {f}")
