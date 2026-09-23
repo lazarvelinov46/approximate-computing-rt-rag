@@ -72,6 +72,9 @@ results/*
 !results/figures
 !results/llama32_3b
 !results/qwen25_7b
+results/cross_model/*
+!results/cross_model/knob12_tables.md
+!results/cross_model/knob345_tables.md
 figures/*
 !figures/.gitkeep
 /data/
