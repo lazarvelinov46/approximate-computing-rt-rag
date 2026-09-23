@@ -118,7 +118,10 @@ def describe(knob, setting, spec3):
                 "compression": float(r["compression"]), "label": kv_label(setting)}
     if knob == 4:
         d = parse_evict(setting)
-        return None if d is None else {**d, "label": f"{d['policy_label']} r{d['keep_ratio']:.2f}"}
+        if d is None:
+            return None
+        variant = " (no RoPE shift)" if d["naive"] else ""
+        return {**d, "label": f"{d['policy_label']} r{d['keep_ratio']:.2f}{variant}"}
     d = parse_topk(setting)
     return None if d is None else {**d, "label": f"k={d['k']}"}
 
@@ -501,12 +504,22 @@ def fig_cross3(models, cross, path):
     fig, ax = plt.subplots(1, 3, figsize=(15, 4.2))
     for tag, m in models.items():
         col, t = COLOUR[tag], m["tables"][3]
-        t = t[t["setting"].isin(cross[f"{tag}_setting"])].sort_values("effective_bits")
+        t = t[t["setting"].isin(cross[f"{tag}_setting"])]
         b = m["stats"]["baseline"]["em"]
-        ax[0].plot(t["effective_bits"], t["em"], "-o", ms=6, color=col, label=SHORT[tag])
+        first = True
+        for g, d in sorted(t.groupby("q_group_size"), reverse=True):
+            # One line across group sizes crosses the G16 point between the G32
+            # chain's points and draws a dip that is an artefact of the x-tie
+            # (n3_g32 and n4_g32 both sit at 5.00 effective bits), not data.
+            d = d.sort_values(["effective_bits", "nbits"])
+            mk = "o" if int(g) == 32 else "s"
+            ax[0].plot(d["effective_bits"], d["em"], "-", marker=mk, ms=6, color=col,
+                       label=SHORT[tag] if first else None)
+            ax[1].plot(d["effective_bits"], d["em"] / b, "-", marker=mk, ms=6, color=col,
+                       label=SHORT[tag] if first else None)
+            first = False
         ax[0].axhline(b, ls="--", c=col, lw=1)
         ax[0].scatter([16], [b], marker="*", s=180, color=col, zorder=5)
-        ax[1].plot(t["effective_bits"], t["em"] / b, "-o", ms=6, color=col, label=SHORT[tag])
     ax[0].set_xlabel("effective bits per KV element\nleft = more aggressive")
     ax[0].set_ylabel("EM"); ax[0].set_title("(a) EM vs storage cost  (star: fp16)")
     ax[1].axhline(1.0, ls="--", c="k", lw=1)
@@ -514,7 +527,12 @@ def fig_cross3(models, cross, path):
     ax[1].set_ylabel("EM retained (setting / own fp16)")
     ax[1].set_title("(b) retained quality, baselines normalized")
     for a in ax[:2]:
-        a.grid(alpha=.3); a.legend(fontsize=8)
+        a.grid(alpha=.3)
+        models_leg = a.legend(fontsize=8, loc="lower right")
+        a.add_artist(models_leg)
+        a.legend(handles=[plt.Line2D([], [], color="k", marker=mk, ls="-", ms=6, label=lab)
+                          for lab, mk in (("group 32", "o"), ("group 16", "s"))],
+                 fontsize=8, loc="center right")
     _panel_dd(ax[2], cross, models, "setting (effective bits ascending)")
     fig.suptitle("Knob 3 — KV-cache precision across generators · regime 1 · short mode · n=1000")
     fig.tight_layout();
@@ -529,13 +547,17 @@ def fig_cross4(models, cross, path):
         t = t[t["setting"].isin(cross[f"{tag}_setting"])]
         ls = "-" if tag == REF else "--"
         b = m["stats"].get("evict_none_b1", m["stats"]["baseline"])["em"]
+        fill = "full" if tag == REF else "none"
         for pol, (lab, colour, mk) in POLICY.items():
             d = t[t["policy"] == pol].sort_values("keep_ratio")
             if d.empty:
                 continue
-            ax[0].plot(d["keep_ratio"], d["em"], ls, marker=mk, ms=6, color=colour)
-            ax[1].plot(d["keep_ratio"], d["em"] / b, ls, marker=mk, ms=6, color=colour)
-        ax[0].plot([], [], ls, color="k", label=SHORT[tag])
+            ax[0].plot(d["keep_ratio"], d["em"], ls, marker=mk, ms=7, color=colour,
+                       fillstyle=fill, mew=1.4)
+            ax[1].plot(d["keep_ratio"], d["em"] / b, ls, marker=mk, ms=7, color=colour,
+                       fillstyle=fill, mew=1.4)
+        ax[0].plot([], [], ls, color="k", marker="o", fillstyle=fill, mew=1.4,
+                   label=f"{SHORT[tag]} ({'filled' if tag == REF else 'hollow'})")
         ax[0].axhline(b, ls=":", c="k", lw=.8)
     for pol, (lab, colour, mk) in POLICY.items():
         ax[0].plot([], [], "-", marker=mk, color=colour, label=lab)
@@ -615,7 +637,8 @@ def model_md(knob, m):
     cols, head = COLS[knob]
     rows = []
     for _, r in m["tables"][knob].iterrows():
-        rows.append([FMT[c].format(r[c]) if c in FMT else r[c] for c in cols])
+        rows.append(["—" if pd.isna(r[c]) else (FMT[c].format(r[c]) if c in FMT else r[c])
+                     for c in cols])
     return _md(rows, head)
 
 
