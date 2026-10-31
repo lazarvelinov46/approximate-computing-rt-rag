@@ -12,7 +12,7 @@ Experimental-setup invariants — must not change between sweeps:
 """
 from __future__ import annotations
 
-from typing import List, Sequence, Tuple, Optional
+from typing import Dict, List, Sequence, Tuple, Optional
 
 import torch
 import re
@@ -138,19 +138,97 @@ def load_tokenizer(name: str):
         tok.pad_token = tok.eos_token
     return tok
 
-def load_generator(name: str, dtype=torch.float16, device: int = 0):
-    """-> (model, tokenizer), pinned to a single GPU.
+# --- multi-device placement (Qwen2.5-7B arm) -------------------------------
+# fp16 Qwen2.5-7B is ~14.2 GiB of weights against ~14.56 GiB usable on one T4,
+# so that arm is pipeline-split across both cards. The map is explicit and
+# pinned, never "auto": "auto" sizes the split from free memory at load time,
+# so it could differ between sessions. Every module owning a parameter or
+# buffer is named, because transformers does NOT raise for an unnamed one — it
+# falls back to device_map.get("", "cpu") and the module lands on CPU silently.
+def split_device_map(name: str, first_layer_on_gpu1: int) -> Dict[str, int]:
+    """Two-card split: embed_tokens, rotary_emb and decoder layers
+    [0, first_layer_on_gpu1) on GPU 0; the remaining layers, the final norm
+    and lm_head on GPU 1. Reads config.json only."""
+    from transformers import AutoConfig
 
-    device_map={"": device} pins every layer to one card. "auto" would shard
-    across the T4 pair and make peak-memory numbers meaningless.
+    n = AutoConfig.from_pretrained(name).num_hidden_layers
+    if not 0 < first_layer_on_gpu1 < n:
+        raise ValueError(
+            f"first_layer_on_gpu1 must be in (0, {n}), got {first_layer_on_gpu1}")
+    dm = {"model.embed_tokens": 0, "model.rotary_emb": 0}
+    dm.update({f"model.layers.{i}": int(i >= first_layer_on_gpu1)
+               for i in range(n)})
+    dm.update({"model.norm": 1, "lm_head": 1})
+    return dm
+
+
+def device_map_for(cfg) -> Optional[Dict[str, int]]:
+    """The pinned split a model overlay names under `placement`, else None
+    (None = the single-device default every reference arm uses)."""
+    pl = cfg.get("placement")
+    if not pl:
+        return None
+    return split_device_map(cfg["models"]["generator"], pl["first_layer_on_gpu1"])
+
+
+def device_for(tensor_name: str, device_map: Dict[str, int]):
+    """Device a parameter/buffer name resolves to, by the longest matching
+    module prefix (the resolution transformers applies). None = unmapped."""
+    for k in sorted(device_map, key=lambda k: (k.count("."), len(k)), reverse=True):
+        if k == "" or tensor_name == k or tensor_name.startswith(k + "."):
+            return device_map[k]
+    return None
+
+
+def check_placement(model, device_map: Dict[str, int]) -> Dict[str, float]:
+    """Raise unless every parameter and buffer sits where device_map put it.
+
+    -> GiB of parameters + buffers per device, keyed "cuda:<index>".
+    """
+    gib, bad = {}, []
+    for name, t in list(model.named_parameters()) + list(model.named_buffers()):
+        want = device_for(name, device_map)
+        got = t.device.index if t.device.type == "cuda" else t.device.type
+        if want is None or got != want:
+            bad.append(f"{name}: on {t.device}, device_map says {want}")
+        dev = f"cuda:{got}" if isinstance(got, int) else str(got)
+        gib[dev] = gib.get(dev, 0.0) + t.numel() * t.element_size() / 2**30
+    if bad:
+        raise RuntimeError(f"{len(bad)} tensors off their mapped device, e.g. "
+                           + "; ".join(bad[:5]))
+    return {k: round(v, 3) for k, v in sorted(gib.items())}
+
+
+def load_generator(name: str, dtype=torch.float16, device: int = 0,
+                   device_map: Optional[Dict[str, int]] = None,
+                   weights_dir: Optional[str] = None):
+    """-> (model, tokenizer).
+
+    Default: device_map={"": device} pins every layer to one card. "auto" would
+    shard across the T4 pair and make peak-memory numbers meaningless. Every
+    reference arm runs this path, and it is unchanged.
+
+    `device_map`: a pinned multi-card map from split_device_map(), for a model
+    that cannot fit on one card. Placement is verified after loading. Peak
+    memory from such a run is per card and NOT comparable to the single-GPU
+    arms (src/metrics/memory.py).
+
+    `weights_dir`: load weights from a local copy (Kaggle Models / Dataset
+    mount) instead of the Hub. name_or_path is reset to `name`, because
+    results_dir, check_out_path and system_for key on it, and a mount path
+    would fail those lookups.
     """
     from transformers import AutoModelForCausalLM
 
     tok = load_tokenizer(name)
-
     model = AutoModelForCausalLM.from_pretrained(
-        name, dtype=dtype, device_map={"": device},
+        weights_dir or name, dtype=dtype,
+        device_map=device_map if device_map is not None else {"": device},
     ).eval()
+    if weights_dir:
+        model.config.name_or_path = name
+    if device_map is not None:
+        check_placement(model, device_map)
     return model, tok
 
 
