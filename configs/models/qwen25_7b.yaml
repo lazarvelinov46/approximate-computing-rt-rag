@@ -1,0 +1,13 @@
+# Overlay on configs/default.yaml for the Qwen2.5-7B-Instruct arm.
+# Load with load_config(model="qwen25_7b"). Names ONLY what differs;
+# default.yaml stays frozen. Tag must match MODEL_TAGS in src/config.py.
+models:
+  generator: Qwen/Qwen2.5-7B-Instruct
+
+# fp16 weights (~14.2 GiB) exceed one T4 (~14.56 GiB usable): pipeline split
+# over both cards, read by generator.model.device_map_for(). Layers
+# [0, first_layer_on_gpu1) + embed_tokens + rotary_emb on cuda:0; the rest +
+# final norm + lm_head on cuda:1. 14 balances the cards (~7.1 GiB each).
+# Pinned so every session loads the same map.
+placement:
+  first_layer_on_gpu1: 14
