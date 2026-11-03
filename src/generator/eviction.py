@@ -453,6 +453,11 @@ def attention_scoring(model, cache, n_kv_heads: Optional[int] = None):
                     f"attention scoring assumes batch 1, got {w.shape[0]}. "
                     "Padded rows would misalign the mass with the keep-set.")
             w = w[0].float()                                # [H, q, kv]
+            if not bool(torch.isfinite(w).all()):
+                raise FloatingPointError(
+                    "non-finite attention weights: the fp16 eager QK^T product "
+                    "overflowed (measured on Qwen2.5-7B, notebook 37 cell 10). "
+                    "Run the attention policy inside fp32_eager(model).")
             H, q, kv = w.shape
             w = w.view(n_kv, H // n_kv, q, kv).mean(dim=1)  # GQA mean
             w = w.mean(dim=0)                               # head mean -> [q, kv]
@@ -477,6 +482,53 @@ def attention_scoring(model, cache, n_kv_heads: Optional[int] = None):
         for h in handles:
             h.remove()
 
+def fp32_eager_attention_forward(module, query, key, value, attention_mask,
+                                 scaling, dropout=0.0, **kwargs):
+    """eager_attention_forward with the QK^T product and softmax in fp32.
+
+    The stock eager path multiplies q.k^T in fp16. On Qwen2.5-7B that product
+    exceeds 65504, so scores go inf, softmax goes NaN, the logits go NaN and
+    greedy argmax returns token 0 ('!'). MEASURED, notebook 37 cell 10: 19/32
+    batch-1 strings corrupted, attention scores non-finite. sdpa accumulates in
+    fp32 and is unaffected; Qwen2.5-3B never overflowed (eager == sdpa, 0/32).
+
+    Only the product is widened. The weights returned (and read by the
+    attention-policy hook) are cast back to the query dtype exactly as the
+    stock function casts them, and the value product runs in that dtype too.
+    """
+    import torch
+    from transformers.models.qwen2.modeling_qwen2 import repeat_kv
+
+    k = repeat_kv(key, module.num_key_value_groups)
+    v = repeat_kv(value, module.num_key_value_groups)
+    w = torch.matmul(query.float(), k.float().transpose(2, 3)) * scaling
+    if attention_mask is not None:
+        w = w + attention_mask[:, :, :, : k.shape[-2]].float()
+    w = torch.softmax(w, dim=-1).to(query.dtype)
+    out = torch.matmul(w, v).transpose(1, 2).contiguous()
+    return out, w
+
+@contextlib.contextmanager
+def fp32_eager(model):
+    """Swap the model family's eager attention for fp32_eager_attention_forward.
+
+    The attention module looks up `eager_attention_forward` in its modeling
+    file's globals at call time, so the swap needs no change to
+    _attn_implementation and every 'eager' guard here still holds. Scoped and
+    restored, so nothing outside the block is affected. Qwen2-family only:
+    other families' attention signatures were not checked.
+    """
+    import importlib
+
+    mod = importlib.import_module(type(model).__module__)
+    if not mod.__name__.endswith("modeling_qwen2"):
+        raise NotImplementedError(f"fp32_eager is verified for Qwen2 only, got {mod.__name__}")
+    orig = mod.eager_attention_forward
+    mod.eager_attention_forward = fp32_eager_attention_forward
+    try:
+        yield
+    finally:
+        mod.eager_attention_forward = orig
 
 def make_cache(model=None, policy: str = "none",
                keep_ratio: float = NO_EVICTION, sink: int = DEFAULT_SINK,
