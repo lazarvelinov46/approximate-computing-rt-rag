@@ -1,0 +1,344 @@
+{
+  "versions": {
+    "transformers": "5.0.0",
+    "tokenizers": "0.22.2",
+    "torch": "2.11.0+cu128",
+    "hqq": "0.2.8.post1",
+    "faiss-cpu": "1.15.1",
+    "sentence-transformers": "5.7.0",
+    "datasets": "4.8.5"
+  },
+  "hub_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "weights_dir": "/kaggle/temp/hf_cache/hub/models--Qwen--Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28",
+  "load_min": 0.7,
+  "device_map_first_layer_on_gpu1": 14,
+  "weights_gib_per_card": {
+    "cuda:0": 7.093,
+    "cuda:1": 7.093
+  },
+  "mem_after_load": {
+    "cuda:0": {
+      "allocated": 7.217,
+      "peak": 7.217,
+      "reserved": 7.23,
+      "free": 7.229,
+      "total": 14.562
+    },
+    "cuda:1": {
+      "allocated": 7.093,
+      "peak": 7.093,
+      "reserved": 7.096,
+      "free": 7.364,
+      "total": 14.562
+    },
+    "peak_sum": 14.31,
+    "n_devices": 2,
+    "comparable_to_single_gpu": false
+  },
+  "embedder_gib_cuda0": 0.124,
+  "memory": [
+    {
+      "set": "r1_short_k5",
+      "batch": 16,
+      "kv": null,
+      "padded": 1524,
+      "oom": false,
+      "mem": {
+        "cuda:0": {
+          "allocated": 7.226,
+          "peak": 11.161,
+          "reserved": 11.881,
+          "free": 2.552,
+          "total": 14.562
+        },
+        "cuda:1": {
+          "allocated": 7.102,
+          "peak": 10.873,
+          "reserved": 11.697,
+          "free": 2.735,
+          "total": 14.562
+        },
+        "peak_sum": 22.034,
+        "n_devices": 2,
+        "comparable_to_single_gpu": false
+      },
+      "max_card_peak": 11.161,
+      "fits": true
+    },
+    {
+      "set": "r1_short_k5",
+      "batch": 16,
+      "kv": {
+        "bits": 4
+      },
+      "padded": 1524,
+      "oom": false,
+      "mem": {
+        "cuda:0": {
+          "allocated": 7.226,
+          "peak": 10.713,
+          "reserved": 8.752,
+          "free": 5.679,
+          "total": 14.562
+        },
+        "cuda:1": {
+          "allocated": 7.102,
+          "peak": 10.426,
+          "reserved": 11.887,
+          "free": 2.546,
+          "total": 14.562
+        },
+        "peak_sum": 21.139,
+        "n_devices": 2,
+        "comparable_to_single_gpu": false
+      },
+      "max_card_peak": 10.713,
+      "fits": true
+    },
+    {
+      "set": "r1_short_k5",
+      "batch": 16,
+      "kv": {
+        "bits": 2,
+        "q_group_size": 16
+      },
+      "padded": 1524,
+      "oom": false,
+      "mem": {
+        "cuda:0": {
+          "allocated": 7.226,
+          "peak": 10.674,
+          "reserved": 8.85,
+          "free": 5.581,
+          "total": 14.562
+        },
+        "cuda:1": {
+          "allocated": 7.102,
+          "peak": 10.385,
+          "reserved": 11.846,
+          "free": 2.587,
+          "total": 14.562
+        },
+        "peak_sum": 21.059,
+        "n_devices": 2,
+        "comparable_to_single_gpu": false
+      },
+      "max_card_peak": 10.674,
+      "fits": true
+    },
+    {
+      "set": "r2_short_k5",
+      "batch": 16,
+      "kv": null,
+      "padded": 1325,
+      "oom": false,
+      "mem": {
+        "cuda:0": {
+          "allocated": 7.226,
+          "peak": 10.64,
+          "reserved": 11.281,
+          "free": 3.149,
+          "total": 14.562
+        },
+        "cuda:1": {
+          "allocated": 7.102,
+          "peak": 10.373,
+          "reserved": 10.809,
+          "free": 3.624,
+          "total": 14.562
+        },
+        "peak_sum": 21.013,
+        "n_devices": 2,
+        "comparable_to_single_gpu": false
+      },
+      "max_card_peak": 10.64,
+      "fits": true
+    },
+    {
+      "set": "r1_explain_k5",
+      "batch": 16,
+      "kv": null,
+      "padded": 1551,
+      "oom": false,
+      "mem": {
+        "cuda:0": {
+          "allocated": 7.226,
+          "peak": 11.229,
+          "reserved": 11.643,
+          "free": 2.788,
+          "total": 14.562
+        },
+        "cuda:1": {
+          "allocated": 7.102,
+          "peak": 10.938,
+          "reserved": 11.928,
+          "free": 2.505,
+          "total": 14.562
+        },
+        "peak_sum": 22.167,
+        "n_devices": 2,
+        "comparable_to_single_gpu": false
+      },
+      "max_card_peak": 11.229,
+      "fits": true
+    },
+    {
+      "set": "r1_short_k10",
+      "batch": 16,
+      "kv": null,
+      "padded": 2953,
+      "oom": true,
+      "mem": null,
+      "max_card_peak": NaN,
+      "fits": false
+    },
+    {
+      "set": "r1_short_k10",
+      "batch": 8,
+      "kv": null,
+      "padded": 2953,
+      "oom": false,
+      "mem": {
+        "cuda:0": {
+          "allocated": 7.226,
+          "peak": 11.068,
+          "reserved": 11.457,
+          "free": 2.973,
+          "total": 14.562
+        },
+        "cuda:1": {
+          "allocated": 7.102,
+          "peak": 10.784,
+          "reserved": 11.682,
+          "free": 2.751,
+          "total": 14.562
+        },
+        "peak_sum": 21.852,
+        "n_devices": 2,
+        "comparable_to_single_gpu": false
+      },
+      "max_card_peak": 11.068,
+      "fits": true
+    }
+  ],
+  "k10_batch": 8,
+  "fp16": {
+    "nonfinite_batches": [],
+    "max_abs_hidden": 15072.0,
+    "max_abs_hidden_by_layer": {
+      "0": 7.5,
+      "1": 16.8,
+      "2": 14.0,
+      "3": 12048.0,
+      "4": 14024.0,
+      "5": 14144.0,
+      "6": 14280.0,
+      "7": 14360.0,
+      "8": 14416.0,
+      "9": 14576.0,
+      "10": 14624.0,
+      "11": 14824.0,
+      "12": 14944.0,
+      "13": 14992.0,
+      "14": 15016.0,
+      "15": 15048.0,
+      "16": 15064.0,
+      "17": 15072.0,
+      "18": 15072.0,
+      "19": 15072.0,
+      "20": 15024.0,
+      "21": 15024.0,
+      "22": 15016.0,
+      "23": 15000.0,
+      "24": 14960.0,
+      "25": 14648.0,
+      "26": 4608.0,
+      "27": 4328.0
+    }
+  },
+  "format_short": {
+    "7b_dev200": {
+      "words_mean": 2.09,
+      "gt5_words": 0.025,
+      "empty": 0,
+      "answer_prefix": 0.0,
+      "ends_period": 0.01,
+      "multiline": 0.005,
+      "bare_cite": 0.0,
+      "abstain_listed": 0.005,
+      "abstain_like": 0.005
+    },
+    "3b_frozen1000": {
+      "words_mean": 1.9,
+      "gt5_words": 0.017,
+      "empty": 0,
+      "answer_prefix": 0.0,
+      "ends_period": 0.008,
+      "multiline": 0.002,
+      "bare_cite": 0.0,
+      "abstain_listed": 0.01,
+      "abstain_like": 0.0
+    },
+    "dev_em": 0.52,
+    "dev_f1": 0.6515
+  },
+  "format_explain": {
+    "parse_rate": 0.985,
+    "trunc_rate": 0.015,
+    "decode_p50": 93.5,
+    "decode_p99": 256.0,
+    "em": 0.555,
+    "f1": 0.666,
+    "minutes_dev200": 10.8
+  },
+  "eager_stock_vs_sdpa_b1_diff_of_32": 19,
+  "eager_fp32_vs_sdpa_b1_diff_of_32": 0,
+  "eviction_cross_device": {
+    "sink_recent": {
+      "keys_on_layer_card": true,
+      "rotations_min": 32,
+      "rotated_both_cards": {
+        "0": true,
+        "1": true
+      },
+      "phase_ok": true,
+      "budget": 553,
+      "evicted": 583,
+      "text_min8": "1978<tool_call>.systemGeneratedFalseFalseFalse4288111501000000000000",
+      "runner_text": "1978"
+    },
+    "attention": {
+      "keys_on_layer_card": true,
+      "rotations_min": 7,
+      "rotated_both_cards": {
+        "0": true,
+        "1": true
+      },
+      "phase_ok": true,
+      "budget": 553,
+      "evicted": 560,
+      "text_min8": "1967<tool_call>\n0",
+      "runner_text": "1967",
+      "scores_finite": true
+    }
+  },
+  "attention_policy_attn": "eager_fp32 (fp32 QK^T)",
+  "timing": {
+    "baseline": {
+      "n": 160,
+      "batch": 16,
+      "sec": 168.2,
+      "est_min_1000": 17.4
+    },
+    "evict_none_b1": {
+      "n": 48,
+      "batch": 1,
+      "sec": 48.9,
+      "est_min_1000": 17.3
+    },
+    "explain_b16": {
+      "est_min_1000": 53.8
+    }
+  },
+  "b1_vs_b16_identity_48": 1.0
+}
