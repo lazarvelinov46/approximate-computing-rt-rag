@@ -1,0 +1,270 @@
+{
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "snapshot": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "versions": {
+    "transformers": "5.0.0",
+    "tokenizers": "0.22.2",
+    "torch": "2.11.0+cu130",
+    "hqq": "0.2.8.post1",
+    "faiss-cpu": "1.15.1",
+    "sentence-transformers": "5.7.0",
+    "datasets": "4.8.5"
+  },
+  "placement": {
+    "first_layer_on_gpu1": 14,
+    "weights_gib": {
+      "cuda:0": 7.093,
+      "cuda:1": 7.093
+    }
+  },
+  "system_short": "You answer questions using only the numbered context passages.\nOutput only the answer itself, copied as a minimal span from the passages. Never explain, never restate the question, never write a full sentence.\n\nExample question: Which city is home to the Eiffel Tower?\nExample answer: Paris",
+  "decisions": [
+    "prompts byte-identical to Qwen2.5-3B (notebook 37); retrieved_ids and prompt_tokens asserted equal to the 3B per question",
+    "two-T4 pipeline split, layers 0-13 on cuda:0; memory peaks per card, not comparable to single-GPU arms",
+    "knob 5 k=10 at batch 8 with topk_05_b8 control (b16 OOM, b8 peak 11.07 GiB/card)",
+    "attention policy runs inside eviction.fp32_eager: stock fp16 eager QK^T overflows on the 7B (19/32 corrupted); fp32 eager == sdpa 32/32, so attention settings share evict_none_b1",
+    "explain arm kept: dev-200 parse 0.985, trunc 0.015 at the frozen 256 cap"
+  ],
+  "settings": {
+    "baseline": {
+      "7b": {
+        "em": 0.488,
+        "f1": 0.6318,
+        "recall@5": 0.916,
+        "complete_frac": 0.838,
+        "em_complete": 0.5585,
+        "em_incomplete": 0.1235,
+        "em_bridge": 0.4592,
+        "em_comparison": 0.6094,
+        "abstain_rate": 0.004,
+        "gap": 0.435,
+        "decode_mean": 3.6,
+        "bang_frac": 0.002
+      },
+      "3b": {
+        "em": 0.391,
+        "f1": 0.5067,
+        "recall@5": 0.916,
+        "complete_frac": 0.838,
+        "em_complete": 0.4415,
+        "em_incomplete": 0.1296,
+        "em_bridge": 0.3589,
+        "em_comparison": 0.526,
+        "abstain_rate": 0.01,
+        "gap": 0.3119,
+        "decode_mean": 3.42,
+        "bang_frac": 0.001
+      }
+    },
+    "baseline_explain": {
+      "7b": {
+        "em": 0.513,
+        "f1": 0.6644,
+        "recall@5": 0.916,
+        "complete_frac": 0.838,
+        "em_complete": 0.5847,
+        "em_incomplete": 0.142,
+        "em_bridge": 0.4901,
+        "em_comparison": 0.6094,
+        "abstain_rate": 0.013,
+        "gap": 0.4427,
+        "decode_mean": 103.03,
+        "bang_frac": 0.001,
+        "parse_rate": 0.989,
+        "trunc_frac": 0.013
+      },
+      "3b": {
+        "em": 0.424,
+        "f1": 0.5594,
+        "recall@5": 0.916,
+        "complete_frac": 0.838,
+        "em_complete": 0.4845,
+        "em_incomplete": 0.1111,
+        "em_bridge": 0.4121,
+        "em_comparison": 0.474,
+        "abstain_rate": 0.008,
+        "gap": 0.3734,
+        "decode_mean": 97.23,
+        "bang_frac": 0.004,
+        "parse_rate": 0.994,
+        "trunc_frac": 0.006
+      }
+    },
+    "regime2_a1_baseline": {
+      "7b": {
+        "em": 0.393,
+        "f1": 0.5221,
+        "recall@5": 0.768,
+        "complete_frac": 0.573,
+        "em_complete": 0.5689,
+        "em_incomplete": 0.1569,
+        "em_bridge": 0.3416,
+        "em_comparison": 0.6094,
+        "abstain_rate": 0.012,
+        "gap": 0.412,
+        "decode_mean": 3.57,
+        "bang_frac": 0.002
+      },
+      "3b": {
+        "em": 0.306,
+        "f1": 0.4037,
+        "recall@5": 0.768,
+        "complete_frac": 0.573,
+        "em_complete": 0.4503,
+        "em_incomplete": 0.1124,
+        "em_bridge": 0.2537,
+        "em_comparison": 0.526,
+        "abstain_rate": 0.014,
+        "gap": 0.3379,
+        "decode_mean": 3.43,
+        "bang_frac": 0.001
+      }
+    },
+    "evict_none_b1": {
+      "7b": {
+        "em": 0.489,
+        "f1": 0.6328,
+        "recall@5": 0.916,
+        "complete_frac": 0.838,
+        "em_complete": 0.5597,
+        "em_incomplete": 0.1235,
+        "em_bridge": 0.4604,
+        "em_comparison": 0.6094,
+        "abstain_rate": 0.004,
+        "gap": 0.4362,
+        "decode_mean": 3.61,
+        "bang_frac": 0.002
+      },
+      "3b": {
+        "em": 0.392,
+        "f1": 0.5078,
+        "recall@5": 0.916,
+        "complete_frac": 0.838,
+        "em_complete": 0.4427,
+        "em_incomplete": 0.1296,
+        "em_bridge": 0.3601,
+        "em_comparison": 0.526,
+        "abstain_rate": 0.009,
+        "gap": 0.3131,
+        "decode_mean": 3.44,
+        "bang_frac": 0.001
+      }
+    }
+  },
+  "mcnemar": {
+    "baseline_vs_evict_none_b1": {
+      "7b": {
+        "b": 1,
+        "c": 0,
+        "d": 1,
+        "p": 1.0,
+        "verdict": "UNINFORMATIVE"
+      },
+      "3b": {
+        "b": 1,
+        "c": 0,
+        "d": 1,
+        "p": 1.0,
+        "verdict": "UNINFORMATIVE"
+      }
+    },
+    "short_vs_explain": {
+      "7b": {
+        "b": 95,
+        "c": 70,
+        "d": 165,
+        "p": 0.0614,
+        "verdict": "NULL"
+      },
+      "3b": {
+        "b": 120,
+        "c": 87,
+        "d": 207,
+        "p": 0.0259,
+        "verdict": "SIGNIFICANT"
+      }
+    }
+  },
+  "smoke_identity": {
+    "baseline": 1.0,
+    "evict_none_b1": 1.0
+  },
+  "memory": {
+    "baseline": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 11.161,
+        "reserved": 12.83,
+        "free": 1.6,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.871,
+        "reserved": 13.76,
+        "free": 0.673,
+        "total": 14.562
+      },
+      "peak_sum": 22.032,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "evict_none_b1": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 7.951,
+        "reserved": 12.865,
+        "free": 1.565,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 7.815,
+        "reserved": 13.793,
+        "free": 0.639,
+        "total": 14.562
+      },
+      "peak_sum": 15.766,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "regime2_a1_baseline": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 10.639,
+        "reserved": 12.865,
+        "free": 1.565,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.374,
+        "reserved": 13.793,
+        "free": 0.639,
+        "total": 14.562
+      },
+      "peak_sum": 21.013,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "baseline_explain": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 11.227,
+        "reserved": 11.828,
+        "free": 2.602,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.936,
+        "reserved": 11.59,
+        "free": 2.843,
+        "total": 14.562
+      },
+      "peak_sum": 22.163,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    }
+  }
+}
