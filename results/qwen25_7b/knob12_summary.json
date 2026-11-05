@@ -1,0 +1,330 @@
+{
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "snapshot": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "regime": 2,
+  "mode": "short",
+  "em_baseline": {
+    "7b": 0.393,
+    "3b": 0.306
+  },
+  "settings": {
+    "knob1_hnsw_ef32": {
+      "complete_frac": 0.527,
+      "7b": {
+        "em": 0.377,
+        "dEM": -0.016,
+        "b": 2,
+        "c": 18,
+        "d": 20,
+        "p": 0.0004,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.5712,
+        "em_incomplete": 0.1607,
+        "abstain_rate": 0.019,
+        "bang_frac": 0.002
+      },
+      "3b": {
+        "em": 0.297,
+        "dEM": -0.009,
+        "b": 2,
+        "c": 11,
+        "d": 13,
+        "p": 0.0225,
+        "verdict": "SIGNIFICANT"
+      },
+      "ddEM_point": -0.007
+    },
+    "knob1_hnsw_ef5": {
+      "complete_frac": 0.365,
+      "7b": {
+        "em": 0.324,
+        "dEM": -0.069,
+        "b": 18,
+        "c": 87,
+        "d": 105,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.589,
+        "em_incomplete": 0.1717,
+        "abstain_rate": 0.039,
+        "bang_frac": 0.001
+      },
+      "3b": {
+        "em": 0.275,
+        "dEM": -0.031,
+        "b": 25,
+        "c": 56,
+        "d": 81,
+        "p": 0.0008,
+        "verdict": "SIGNIFICANT"
+      },
+      "ddEM_point": -0.038
+    },
+    "knob1_ivf_nprobe1": {
+      "complete_frac": 0.116,
+      "7b": {
+        "em": 0.226,
+        "dEM": -0.167,
+        "b": 31,
+        "c": 198,
+        "d": 229,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.6379,
+        "em_incomplete": 0.1719,
+        "abstain_rate": 0.076,
+        "bang_frac": 0.001
+      },
+      "3b": {
+        "em": 0.206,
+        "dEM": -0.1,
+        "b": 39,
+        "c": 139,
+        "d": 178,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT"
+      },
+      "ddEM_point": -0.067
+    },
+    "knob2_pq_m192": {
+      "complete_frac": 0.572,
+      "7b": {
+        "em": 0.39,
+        "dEM": -0.003,
+        "b": 14,
+        "c": 17,
+        "d": 31,
+        "p": 0.7201,
+        "verdict": "NULL",
+        "em_complete": 0.5682,
+        "em_incomplete": 0.1519,
+        "abstain_rate": 0.012,
+        "bang_frac": 0.002
+      },
+      "3b": {
+        "em": 0.306,
+        "dEM": 0.0,
+        "b": 17,
+        "c": 17,
+        "d": 34,
+        "p": 1.0,
+        "verdict": "NULL"
+      },
+      "ddEM_point": -0.003
+    },
+    "knob2_pq_m64": {
+      "complete_frac": 0.527,
+      "7b": {
+        "em": 0.37,
+        "dEM": -0.023,
+        "b": 39,
+        "c": 62,
+        "d": 101,
+        "p": 0.0281,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.5579,
+        "em_incomplete": 0.1607,
+        "abstain_rate": 0.021,
+        "bang_frac": 0.001
+      },
+      "3b": {
+        "em": 0.306,
+        "dEM": 0.0,
+        "b": 47,
+        "c": 47,
+        "d": 94,
+        "p": 1.0,
+        "verdict": "NULL"
+      },
+      "ddEM_point": -0.023
+    },
+    "knob2_pq_m48": {
+      "complete_frac": 0.498,
+      "7b": {
+        "em": 0.358,
+        "dEM": -0.035,
+        "b": 33,
+        "c": 68,
+        "d": 101,
+        "p": 0.0006,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.5763,
+        "em_incomplete": 0.1414,
+        "abstain_rate": 0.022,
+        "bang_frac": 0.002
+      },
+      "3b": {
+        "em": 0.286,
+        "dEM": -0.02,
+        "b": 39,
+        "c": 59,
+        "d": 98,
+        "p": 0.0544,
+        "verdict": "NULL"
+      },
+      "ddEM_point": -0.015
+    },
+    "knob2_pq_m32": {
+      "complete_frac": 0.423,
+      "7b": {
+        "em": 0.324,
+        "dEM": -0.069,
+        "b": 34,
+        "c": 103,
+        "d": 137,
+        "p": 0.0,
+        "verdict": "SIGNIFICANT",
+        "em_complete": 0.5485,
+        "em_incomplete": 0.1594,
+        "abstain_rate": 0.023,
+        "bang_frac": 0.001
+      },
+      "3b": {
+        "em": 0.275,
+        "dEM": -0.031,
+        "b": 42,
+        "c": 73,
+        "d": 115,
+        "p": 0.0049,
+        "verdict": "SIGNIFICANT"
+      },
+      "ddEM_point": -0.038
+    }
+  },
+  "memory": {
+    "knob1_hnsw_ef32": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 10.639,
+        "reserved": 13.926,
+        "free": 0.505,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.374,
+        "reserved": 13.371,
+        "free": 1.061,
+        "total": 14.562
+      },
+      "peak_sum": 21.013,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "knob1_hnsw_ef5": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 11.053,
+        "reserved": 11.447,
+        "free": 2.983,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.769,
+        "reserved": 11.666,
+        "free": 2.766,
+        "total": 14.562
+      },
+      "peak_sum": 21.822,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "knob1_ivf_nprobe1": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 11.187,
+        "reserved": 14.049,
+        "free": 0.382,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.899,
+        "reserved": 14.268,
+        "free": 0.165,
+        "total": 14.562
+      },
+      "peak_sum": 22.086,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "knob2_pq_m192": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 10.735,
+        "reserved": 14.049,
+        "free": 0.382,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.465,
+        "reserved": 14.268,
+        "free": 0.165,
+        "total": 14.562
+      },
+      "peak_sum": 21.2,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "knob2_pq_m64": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 11.268,
+        "reserved": 11.898,
+        "free": 2.532,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.976,
+        "reserved": 12.457,
+        "free": 1.975,
+        "total": 14.562
+      },
+      "peak_sum": 22.244,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "knob2_pq_m48": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 10.709,
+        "reserved": 11.898,
+        "free": 2.532,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.441,
+        "reserved": 12.457,
+        "free": 1.975,
+        "total": 14.562
+      },
+      "peak_sum": 21.15,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    },
+    "knob2_pq_m32": {
+      "cuda:0": {
+        "allocated": 7.226,
+        "peak": 11.089,
+        "reserved": 11.898,
+        "free": 2.532,
+        "total": 14.562
+      },
+      "cuda:1": {
+        "allocated": 7.102,
+        "peak": 10.804,
+        "reserved": 12.457,
+        "free": 1.975,
+        "total": 14.562
+      },
+      "peak_sum": 21.893,
+      "n_devices": 2,
+      "comparable_to_single_gpu": false
+    }
+  },
+  "retrieval": "replayed from Qwen2.5-3B's stored retrieved_ids per setting; retrieved_ids and prompt_tokens asserted equal per question"
+}
